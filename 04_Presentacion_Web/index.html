@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Del levantamiento a la alerta</title>
+<meta name="description" content="Cómo el levantamiento GNSS y UAV-PPK del río Elqui en Vicuña (Proyecto de Título) alimenta la modelación, la exposición por manzana y el sistema ElquiAlerta de Innovación III.">
+<meta name="theme-color" content="#eef1f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10161a" media="(prefers-color-scheme: dark)">
+<!-- Tipografía: opcional. Sin internet la página usa Bahnschrift / Arial Narrow, Segoe UI y Consolas. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700;800&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Ir al contenido</a>
+
+<header class="top" id="top">
+  <div class="top-in">
+    <a class="brand" href="#inicio"><span class="x" aria-hidden="true"></span>Elqui</a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#cadena">Cadena</a>
+      <a href="#encaje">Encaje</a>
+      <a href="#c1">1 Geodesia</a>
+      <a href="#c2">2 GNSS</a>
+      <a href="#c3">3 Vuelo</a>
+      <a href="#c4">4 Calidad</a>
+      <a href="#c5">5 Economía</a>
+      <a href="#costo-persona">Por persona</a>
+      <a href="#sintesis">Síntesis</a>
+    </nav>
+    <div class="tools">
+      <button type="button" id="btn-pres" class="tool" aria-pressed="false" title="Agranda todo el texto para proyectar">Modo sala</button>
+      <button type="button" id="btn-tema" class="tool" title="Cambia entre tema del sistema, claro y oscuro">Tema: sistema</button>
+    </div>
+  </div>
+</header>
+
+<main id="contenido">
+<div class="wrap">
+
+<!-- Portada -->
+<section class="hero" id="inicio" aria-labelledby="h-titulo">
+  <div class="hero-text">
+    <p class="context">Innovación III, con datos del Proyecto de Título. Vicuña, río Elqui.</p>
+    <h1 id="h-titulo"><span class="x" aria-hidden="true"></span>Del levantamiento a la alerta</h1>
+    <p class="subtitle">Cómo encajan el Proyecto de Título e Innovación III</p>
+    <p class="lede">El <b>Proyecto de Título</b> levanta el tramo urbano del río Elqui en Vicuña y entrega el terreno medido. <b>Innovación III</b> usa ese terreno para modelar la crecida y avisar a cada manzana. Esta página muestra dónde se conectan, qué confirma la tesis de los hallazgos del curso y qué falta, y evalúa el conjunto en lo técnico y lo económico.</p>
+    <div class="actions">
+      <a class="btn primary" href="#cadena">Recorrer la cadena</a>
+      <a class="btn" href="anexos/02_ElquiAlerta/apps/admin/prototype/index.html">Abrir prototipo ElquiAlerta</a>
+    </div>
+    <p class="scope">Entrega académica. La modelación hidráulica y la conexión operativa de ElquiAlerta siguen pendientes.</p>
+  </div>
+  <figure class="hero-map">
+    <svg id="hero-map" viewBox="0 0 640 330" role="img" aria-labelledby="hm-t hm-d">
+      <title id="hm-t">Puntos de apoyo PC1 a PC7 en planta</title>
+      <desc id="hm-d">Los siete puntos de control dibujados con sus coordenadas UTM ajustadas, unidos en orden aguas arriba. Debajo, la cadena de trabajo: el Proyecto de Título llega hasta el MDT, desde donde sigue Innovación III.</desc>
+    </svg>
+    <figcaption>Coordenadas reales del ajuste GNSS (WGS 84 / UTM 19S). La línea une los puntos en orden; no es el eje del cauce ni una zona inundable.</figcaption>
+  </figure>
+</section>
+
+<div class="kpis" id="kpis" aria-label="Cifras del levantamiento"></div>
+<p class="meta" id="meta"></p>
+
+<!-- Parte 1: cadena -->
+<section class="band" id="cadena" aria-labelledby="h-cadena">
+  <h2 id="h-cadena">El título termina donde empieza Innovación III</h2>
+  <p class="measure">La tesis lo dice explícitamente: su alcance <b>“no contempla el desarrollo de la modelación hidráulica, el cálculo de caudales, la simulación de escenarios de inundación ni la elaboración de una zonificación oficial de riesgo”</b>, que corresponden a un <b>“trabajo hidráulico desarrollado por separado”</b> (Cap. 2, Alcances). Ese trabajo es el desafío de Innovación III. Selecciona una etapa para ver qué recibe, qué entrega y de dónde sale. Con el teclado, usa las flechas.</p>
+  <div class="legend">
+    <span><i class="sw tit"></i>Proyecto de Título (geomática)</span>
+    <span><i class="sw inn"></i>Innovación III (modelación y comunicación del riesgo)</span>
+    <span><i class="sw gcp"></i>Punto de traspaso: el MDT</span>
+  </div>
+  <div class="rail" id="pipe" role="group" aria-label="Etapas de la cadena. Usa las flechas para cambiar de etapa."></div>
+  <div class="sdetail" id="sdetail" aria-live="polite"></div>
+  <div class="alert" id="brecha"><p><b>Brecha crítica en el traspaso:</b> la fotogrametría UAV no registra el fondo sumergido del río (Cap. 2, FODA, Debilidades). HEC-RAS necesita la geometría del cauce bajo el agua para calcular cuánto caudal cabe antes del desborde. Sin batimetría o un levantamiento con estación total del lecho (la tesis lo deja <b>“planificado y presupuestado para una etapa posterior”</b>), el modelo de Innovación III subestimaría o sobreestimaría la crecida. Es el mismo riesgo que advierte Eduardo Araya en la Ficha 6.</p></div>
+  <div class="print-only" id="print-stages"></div>
+</section>
+
+<!-- Parte 2: encaje -->
+<section class="band" id="encaje" aria-labelledby="h-encaje">
+  <h2 id="h-encaje">Hallazgos de Innovación III frente a la evidencia del Título</h2>
+  <p class="measure">Cada fila toma una afirmación de las fichas del curso y la contrasta con lo que midió o documentó la tesis. <b>Confirma</b>: la tesis la respalda con datos. <b>Precisa</b>: la respalda y le pone un número real. <b>Tensiona</b>: hay que ajustar algo antes de entregar. Primero aparece lo que tensiona, porque es lo que hay que defender.</p>
+  <div class="propbar" id="fit-f" role="group" aria-label="Filtrar por resultado"></div>
+  <p class="count" id="fit-count" role="status" aria-live="polite"></p>
+  <div class="fit" id="fit" role="table" aria-label="Matriz de encaje">
+    <div class="fit-head" role="row">
+      <span role="columnheader">Resultado</span>
+      <span role="columnheader">Innovación III dice</span>
+      <span role="columnheader">El Título muestra</span>
+      <span role="columnheader">Qué hacer</span>
+    </div>
+    <div id="fit-body" role="rowgroup"></div>
+  </div>
+</section>
+
+<!-- Clave 1 -->
+<section class="concept" id="c1" aria-labelledby="h-c1">
+  <div class="text">
+    <div class="khead"><span class="knum" aria-hidden="true">1</span><div><p class="ktag"><span class="xs" aria-hidden="true"></span>Geodesia</p><h2 id="h-c1">Referencia geodésica y tipos de altura</h2></div></div>
+    <p>Todo levantamiento parte de un punto con coordenadas conocidas. El proyecto se vinculó al <b>monolito LE-12 de la DOH</b> (sector Calingasta), porque es oficial, tiene cota nivelada y queda cerca del tramo.</p>
+    <p class="def"><span class="formula">H = h − N</span>El GNSS entrega altura <b>elipsoidal (h)</b>. Para un río importa la altura <b>ortométrica (H)</b>, sobre el geoide. La diferencia es la <b>ondulación geoidal (N)</b>, que aquí se tomó del modelo EGM2008.</p>
+    <p><b>Ejemplo:</b> elige un punto de control. En Vicuña N vale cerca de <b>33 m</b>: si se confundiera h con H, todo el modelo del cauce quedaría 33 m “más alto” y la simulación hidráulica no serviría.</p>
+    <div class="innote"><h3>Qué cambia para Innovación III</h3><p>Esta es la versión real del concepto 1 del curso (DEM). La página de conceptos usaba un error de DEM de ±0,5 m como ejemplo; los puntos de control reales tienen σU de 2 a 3 mm. El riesgo de error ya no está en los puntos: está en el MDT entre puntos y en el fondo del cauce.</p></div>
+    <p class="src">Fuente: Cap. 2, Planificación geodésica e Ilustración 161 (coordenadas ajustadas PC1–PC7).</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="row"><span class="ctl-label" id="lbl-pc">Punto</span><div class="seg" id="pc-sel" role="group" aria-labelledby="lbl-pc"></div></div>
+      <div class="svgbox"><svg id="heights" viewBox="0 0 640 270" role="img" aria-label="Esquema de la relación entre altura elipsoidal, geoide y altura ortométrica" aria-describedby="pc-stats"></svg></div>
+      <div class="stats" id="pc-stats"></div>
+    </div>
+    <div class="panel">
+      <h3 class="ptitle">Perfil de los 7 puntos a lo largo del río (elevación EGM2008)</h3>
+      <div class="svgbox"><svg id="profile" viewBox="0 0 640 230" role="img" aria-label="Elevación ortométrica de PC1 a PC7 según la coordenada Este. Cada punto se puede seleccionar."></svg></div>
+    </div>
+    <figcaption>Valores reales del ajuste en Magnet Tools (26-09-2026). El perfil muestra el desnivel del río: unos 22 m en 1,7 km.</figcaption>
+  </figure>
+</section>
+
+<!-- Clave 2 (figura a la izquierda) -->
+<section class="concept flip" id="c2" aria-labelledby="h-c2">
+  <div class="text">
+    <div class="khead"><span class="knum" aria-hidden="true">2</span><div><p class="ktag"><span class="xs" aria-hidden="true"></span>GNSS</p><h2 id="h-c2">Calidad del posicionamiento GNSS</h2></div></div>
+    <p>Un punto GNSS vale lo que valen sus indicadores. Los tres que se revisan son:</p>
+    <dl class="def deflist">
+      <dt>PDOP</dt><dd>Geometría de los satélites. Menor es mejor; el criterio del proyecto es ≤ 3.</dd>
+      <dt>RMS</dt><dd>Dispersión de la solución del vector. La ETT-DOH acepta hasta 2 cm.</dd>
+      <dt>σ</dt><dd>Desviación estándar: incertidumbre de la coordenada ajustada.</dd>
+    </dl>
+    <p><b>Ejemplo:</b> los 7 vectores Base PPK → PC cumplen con holgura. Pero cada punto salió de <b>un solo vector</b>, sin figuras cerradas: un error en la altura de antena no aparecería en estos números. Por eso se distingue <b>precisión interna</b> (lo que dice el software) de <b>exactitud externa</b> (contraste con puntos independientes).</p>
+    <div class="innote"><h3>Qué cambia para Innovación III</h3><p>El hallazgo “vacío cartográfico local” (Ficha 9) se resuelve aquí: la red queda amarrada al monolito oficial de la DOH. Así, los mapas de inundación de Innovación III se pueden superponer con la información que la DOH ya tiene del cauce.</p></div>
+    <p class="src">Fuente: Cap. 2, Control del posicionamiento geodésico e Ilustración 160.</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="row"><span class="ctl-label" id="lbl-gnss">Indicador</span><div class="seg" id="gnss-sel" role="group" aria-labelledby="lbl-gnss">
+        <button type="button" data-m="pdop" aria-pressed="true">PDOP</button><button type="button" data-m="rms" aria-pressed="false">RMS</button><button type="button" data-m="sat" aria-pressed="false">Satélites</button><button type="button" data-m="len" aria-pressed="false">Longitud vs. tiempo</button></div></div>
+      <div class="svgbox"><svg id="gnss" viewBox="0 0 640 270" role="img" aria-label="Indicadores de calidad por vector GNSS" aria-describedby="gnss-note"></svg></div>
+      <p id="gnss-note" class="note" aria-live="polite"></p>
+    </div>
+    <div class="tbox"><table>
+      <caption class="sr-only">Vectores GNSS Base PPK hacia PC1–PC7</caption>
+      <thead><tr><th scope="col">Vector</th><th scope="col" class="n">Long. (m)</th><th scope="col" class="n">Duración</th><th scope="col" class="n">Sat.</th><th scope="col" class="n">PDOP</th><th scope="col" class="n">RMS (m)</th><th scope="col">Estado</th></tr></thead>
+      <tbody id="gnss-tbody"></tbody></table></div>
+  </figure>
+</section>
+
+<!-- Clave 3 -->
+<section class="concept" id="c3" aria-labelledby="h-c3">
+  <div class="text">
+    <div class="khead"><span class="knum" aria-hidden="true">3</span><div><p class="ktag"><span class="xs" aria-hidden="true"></span>Fotogrametría</p><h2 id="h-c3">Diseño del vuelo: GSD, traslapes y autonomía</h2></div></div>
+    <p>El <b>GSD</b> (tamaño del píxel en el terreno) crece con la altura de vuelo. Los <b>traslapes</b> definen cuántas fotos ven cada punto. Las dos cosas mandan sobre la calidad del modelo, el número de fotos y las baterías que hay que llevar.</p>
+    <p class="def"><span class="formula">GSD = (ancho del sensor × altura) / (focal × píxeles)</span>Mavic 3E: sensor 17,3 mm, focal 12,29 mm, 5280 px.</p>
+    <p><b>Ejemplo:</b> el plan original daba 2,42 cm/px. El viento obligó a subir a <b>110 m</b> y el GSD pasó a ~2,9 cm/px, todavía bajo el límite de 3,0 cm para escala 1:500. Con solo 3 baterías se usó 70 % de traslape frontal, bajo el 80 % que pide la DOH. Mueve los controles y mira qué cambia.</p>
+    <div class="innote"><h3>Qué cambia para Innovación III</h3><p>La Ficha 8 prometía “resolución &lt; 5 m” frente a plataformas de más de 30 m. El dato real es mucho mejor: <b>~2,9 cm/píxel</b> en el vuelo y 12,5 m en el DEM gratuito ALOS PALSAR que usó la tesis para el contexto comunal. Para HEC-RAS 2D se remuestrea el MDT a una malla de 1 a 5 m: el detalle sobra, lo que falta es el lecho sumergido.</p></div>
+    <p class="src">Fuente: Cap. 2, Planificación del levantamiento UAV-PPK, Control de la adquisición y Decisiones sobre el levantamiento.</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="sliders">
+        <label class="sl" for="fh"><span>Altura de vuelo <b class="mono" id="fh-v"></b></span><input id="fh" type="range" min="60" max="150" step="1" value="110"></label>
+        <label class="sl" for="ff"><span>Traslape frontal <b class="mono" id="ff-v"></b></span><input id="ff" type="range" min="60" max="90" step="5" value="70"></label>
+        <label class="sl" for="fs"><span>Traslape lateral <b class="mono" id="fs-v"></b></span><input id="fs" type="range" min="40" max="85" step="5" value="70"></label>
+      </div>
+      <div class="svgbox"><svg id="overlap" viewBox="0 0 640 210" role="img" aria-label="Huellas de fotos con traslape frontal y lateral, vista en planta"></svg></div>
+      <div class="stats" id="flight-stats" aria-live="polite"></div>
+      <div class="chips" id="flight-checks"></div>
+    </div>
+    <figcaption>Modelo calibrado con la planificación real: 1,43 km², 44,32 km y 60 min a 2,42 cm/px con 70/70 %. Supuesto: unos 20 min útiles por batería (3 baterías ≈ 60 min). Valores orientativos.</figcaption>
+  </figure>
+</section>
+
+<!-- Clave 4 -->
+<section class="concept split" id="c4" aria-labelledby="h-c4">
+  <div class="text">
+    <div class="khead"><span class="knum" aria-hidden="true">4</span><div><p class="ktag"><span class="xs" aria-hidden="true"></span>Calidad</p><h2 id="h-c4">Control de calidad y gestión de riesgos</h2></div></div>
+    <div class="cols2">
+      <div class="stack">
+        <p>Evaluar un proyecto geomático es decidir, antes de ejecutarlo, con qué criterio se <b>acepta, condiciona o rechaza</b> cada producto. Después se compara lo planificado con lo obtenido.</p>
+        <p>La otra mitad es anticipar lo que puede salir mal. El proyecto clasificó sus riesgos en alto, medio y bajo, y anotó cuáles <b>ocurrieron de verdad</b> en terreno.</p>
+        <p><b>Ejemplo:</b> el semáforo resume los criterios del capítulo. Hay dos puntos que el informe debe explicar: el traslape frontal bajo norma y el error de reproyección de 1,21 px. Abajo, selecciona un riesgo para ver su causa y su medida.</p>
+      </div>
+      <div class="stack">
+        <div class="innote"><h3>Qué cambia para Innovación III</h3><p>La matriz PESTAL (Ficha 7) ya advertía que “la calidad del modelo depende directamente de la precisión de la topografía”. Los criterios de este semáforo son esa precisión, medida. Los tres ámbar y los dos rojos pasan como incertidumbre al modelo hidráulico y, por lo tanto, a los mensajes de ElquiAlerta: por eso el prototipo dice “escenario no validado”.</p></div>
+        <p class="src">Fuente: Cap. 2, secciones 15 (control de calidad), 17 (FODA) y 18 (riesgos técnicos).</p>
+      </div>
+    </div>
+  </div>
+  <figure class="cols2">
+    <div class="panel">
+      <h3 class="ptitle">Semáforo de control</h3>
+      <div class="seg" id="qc-f" role="group" aria-label="Filtrar criterios"></div>
+      <div class="qc" id="qc"></div>
+    </div>
+    <div class="panel">
+      <h3 class="ptitle">Riesgos técnicos y operacionales</h3>
+      <div class="risk" id="risk" role="group" aria-label="Riesgos. Usa las flechas para cambiar."></div>
+      <div class="riskdetail" id="risk-d" aria-live="polite"></div>
+    </div>
+  </figure>
+</section>
+
+<!-- Clave 5 -->
+<section class="concept wide" id="c5" aria-labelledby="h-c5">
+  <div class="text">
+    <div class="khead"><span class="knum" aria-hidden="true">5</span><div><p class="ktag"><span class="xs" aria-hidden="true"></span>Economía</p><h2 id="h-c5">Presupuesto por valor hora y comparación de métodos</h2></div></div>
+    <div class="cols2">
+      <div class="stack">
+        <p>Un presupuesto geomático suma <b>recursos humanos</b> (horas × valor hora), <b>instrumental</b> (arriendo por día), <b>operación</b> (combustible, colaciones) y un margen de <b>imprevistos</b>.</p>
+        <p class="def"><span class="formula">Costo = Σ (horas × valor hora) + arriendos + operación + imprevistos</span>Retención de la boleta de honorarios 2026: 15,25 % de los honorarios brutos.</p>
+        <p>Además sirve para elegir el método. La tesis justifica el UAV porque cubrir 1,43 km² con estación total era <b>inviable en el plazo</b>. La calculadora pone esa decisión en pesos.</p>
+        <p><b>Ejemplo:</b> los valores hora salen del presupuesto del seminario 2024 (Altos Los Porotitos), del mismo equipo docente. Los valores marcados <span class="badge b-ex">EJEMPLO</span> son supuestos editables: reemplázalos por las cotizaciones reales para el Capítulo 3.</p>
+      </div>
+      <div class="stack">
+        <div class="alert"><p><b>Corrección para el informe:</b> el seminario 2024 habla de “descuento de IVA 19 %” en la boleta de honorarios. La boleta no lleva IVA: lleva una <b>retención de impuesto</b> que en 2026 es de <b>15,25 %</b> (Ley 21.133). Conviene corregirlo antes de reutilizar ese texto.</p></div>
+        <div class="innote"><h3>Qué cambia para Innovación III</h3><p>La Ficha 12 comparó cinco alternativas solo por niveles (alto, medio, bajo). Con este presupuesto se puede poner un número a la propuesta y compararla con lo que protege: el Plan Comunal de Reducción del Riesgo de Desastres de Vicuña 2023–2025 estima <b>unas 5.000 personas expuestas</b> a crecidas (citado en el Cap. 2).</p></div>
+        <p class="src">Fuente: Seminario 2024, Cap. III, secciones 27 y 29; Cap. 2 (2026), Decisiones sobre el levantamiento aerofotogramétrico.</p>
+      </div>
+    </div>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="budget">
+        <form class="inputs" id="b-inputs" aria-label="Supuestos del presupuesto"></form>
+        <div class="budget-out">
+          <h3 class="ptitle">Escenario UAV-PPK (método del proyecto)</h3>
+          <div class="tbox"><table><caption class="sr-only">Desglose del presupuesto UAV-PPK</caption><thead><tr><th scope="col">Partida</th><th scope="col" class="n">Monto</th><th scope="col" class="n">% del total</th></tr></thead><tbody id="b-table"></tbody></table></div>
+          <div class="total"><span>Total con imprevistos</span><b id="b-total" aria-live="polite"></b></div>
+          <p class="note mono-s" id="b-net"></p>
+          <button type="button" class="btn small" id="b-reset">Restablecer valores</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3 class="ptitle">Comparación de métodos para 1,43 km²</h3>
+      <p class="bignum"><b id="cmp-x"></b><span id="cmp-x-l"></span></p>
+      <div class="svgbox"><svg id="compare" viewBox="0 0 640 170" role="img" aria-label="Comparación de costo y días entre UAV y estación total" aria-describedby="compare-note"></svg></div>
+      <p id="compare-note" class="note" aria-live="polite"></p>
+    </div>
+  </figure>
+</section>
+
+<!-- Costo por persona expuesta -->
+<section class="band person" id="costo-persona" aria-labelledby="h-pp">
+  <h2 id="h-pp">Cuánto cuesta el levantamiento por cada persona expuesta</h2>
+  <div class="pp-grid">
+    <div class="stack">
+      <p class="bignum huge"><b id="ppc" aria-live="polite"></b><span>por persona expuesta, con <b id="pp-n"></b> personas</span></p>
+      <p class="bignum-sub"><b id="pp-uf"></b> equivalente aprox. en UF</p>
+      <label class="sl" for="pp"><span>Personas expuestas (PCRRD Vicuña) <b class="mono" id="pp-v"></b></span><input id="pp" type="range" min="1000" max="10000" step="500" value="5000"></label>
+      <label class="inp uf" for="uf"><span>Valor UF referencial <span class="badge b-ex">EJEMPLO</span></span><span class="field"><input id="uf" type="number" min="1" step="any" inputmode="decimal" value="40000"><i>$</i></span></label>
+      <div class="alert"><p><b>Solo levantamiento.</b> El costo por persona incluye únicamente el levantamiento de la calculadora de la Clave 5. Falta sumar el modelo hidráulico y la operación de ElquiAlerta.</p></div>
+    </div>
+    <div class="stack">
+      <h3 class="ptitle">La propuesta frente a los antecedentes (Ficha 12 + este presupuesto)</h3>
+      <div class="tbox"><table>
+        <caption class="sr-only">Alternativas de la Ficha 12 y la propuesta</caption>
+        <thead><tr><th scope="col">Alternativa</th><th scope="col">Costo (Ficha 12)</th><th scope="col">¿Dice qué manzana se inunda?</th></tr></thead>
+        <tbody id="alt-body"></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- Síntesis -->
+<section class="closing" id="sintesis" aria-labelledby="h-sin">
+  <h2 id="h-sin">Síntesis: qué queda listo y qué falta</h2>
+  <div class="closing-grid">
+    <div class="stack">
+      <h3 class="ptitle">Encajan en secuencia</h3>
+      <div class="mini-rail" id="mini-rail" aria-hidden="true"></div>
+      <ul class="plain" id="sin-encaja"></ul>
+    </div>
+    <div class="stack">
+      <h3 class="ptitle">Pendientes antes de entregar</h3>
+      <p class="note">Marca lo resuelto. Las marcas se guardan solo en este navegador.</p>
+      <ul class="checklist" id="sin-pend"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- Fuentes -->
+<section class="sources" id="fuentes" aria-labelledby="h-fu">
+  <h2 id="h-fu">Fuentes y alcance</h2>
+  <ol id="fuentes-list"></ol>
+  <p class="note">Los mapas y esquemas de esta página no son cartografía oficial ni delimitan zonas inundables. Los valores marcados EJEMPLO no son cotizaciones.</p>
+  <nav class="links" aria-label="Otros entregables de la carpeta" id="enlaces"></nav>
+</section>
+
+</div>
+</main>
+
+<footer class="foot"><div class="wrap">Entrega de Innovación III. Fuentes del curso: Fichas 1–12, página “Cinco claves del Elqui” y prototipo ElquiAlerta. Fuentes del Título: “Caracterización geomática y análisis territorial del río Elqui en la comuna de Vicuña”, Cap. 2 (22-10-2026), y Seminario de título 2024 “Base geomática integral, Altos Los Porotitos”, Cap. III. Profesor guía: Eduardo Araya Vidal.</div></footer>
+
+<noscript><p class="wrap">Esta página necesita JavaScript para dibujar los gráficos y las calculadoras. Los textos principales se leen igual.</p></noscript>
+<script src="datos/datos.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

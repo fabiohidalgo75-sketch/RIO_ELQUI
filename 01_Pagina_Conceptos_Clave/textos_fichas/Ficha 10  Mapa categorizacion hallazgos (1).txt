@@ -1,0 +1,37 @@
+instrumento | 1.1.4.3
+
+Mapa de priorización de hallazgos
+
+                                                          (+)
+                                                      Impacto
+
+              Modelación 2D de                                                 Construcción de nuevas defensas
+              inundación integrando                                            fluviales y encauzamientos
+              topografía de detalle                                            definitivos a lo largo de todos los
+              actualizada y modelación                                         sectores residenciales vulnerables
+              en HEC-RAS procesada                                             (Villa El Arrayán, Marquesa, Nueva
+              en ArcGIS Pro.                                                   Talcuna).
+
+                        Generación de mapas                                                                                                    (+)
+                        visuales de fácil                                                                                                 Complejo
+                        interpretación para la
+                        comunidad, delimitando
+                        manzanas, puentes y zonas
+                        agrícolas en riesgo.
+
+                   (-)
+              Complejo
+
+                        Intentar escalar o modificar                           Mantener el monitoreo exclusivamente
+                        plataformas globales de                                mediante el registro de caudales de las
+                        caja negra como Google                                 estaciones hidrométricas de la DGA, sin
+                        Flood Hub para forzar                                  actualizar la cartografía local.
+                        simulaciones de precisión
+                        milimétrica a nivel local en
+                        Vicuña.
+
+Integrantes:                                              (-)                  Profesor:
+                                                      Impacto
+
+                                                                       Curso:
+

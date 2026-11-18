@@ -1,0 +1,461 @@
+// ElquiAlerta — esquema adaptado de EcoPoint.
+// Mejoras: geometrías PostGIS reales (no lat/lng sueltos), FKs en reportes,
+// rol como enum en refresh tokens y confirmación de doble vía en alertas.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "omitApi"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  RESIDENT
+  BRIGADIST
+  OPERATOR
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum Institution {
+  MUNICIPALIDAD
+  SENAPRED
+  BOMBEROS
+  COGRID
+  VOLUNTARIO
+}
+
+enum AlertLevel {
+  NORMAL
+  PREVENTIVA
+  AMARILLA
+  ROJA
+}
+
+enum AlertTrigger {
+  AUTO
+  OPERATOR
+}
+
+enum DeliveryChannel {
+  PUSH
+  SMS
+}
+
+enum AckStatus {
+  PENDING
+  SAFE
+  NEEDS_HELP
+  NO_RESPONSE
+}
+
+enum DepthClass {
+  D0_05
+  D05_15
+  D15_PLUS
+}
+
+enum ReportType {
+  OVERFLOW
+  ACTIVE_RAVINE
+  FLOODED_HOME
+  ISOLATED_PERSON
+  ROAD_CUT
+  DAMAGED_DEFENSE
+  RIVERBED_DUMP
+  MISSING_SIGNAGE
+  TECHNICAL_BUG
+}
+
+enum ReportStatus {
+  PENDING
+  VERIFYING
+  ATTENDED
+  ESCALATED
+  DISMISSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AssetType {
+  GABION
+  ROCK_DEFENSE
+  WALL
+  BRIDGE
+  SIGNAGE
+}
+
+enum AssetCondition {
+  GOOD
+  FAIR
+  DAMAGED
+}
+
+// ─── Personas ────────────────────────────────────────────────────────────────
+
+/// Vecino (≈ User/Reciclador en EcoPoint)
+model Resident {
+  id               String        @id @default(uuid())
+  name             String
+  email            String        @unique
+  phone            String?
+  passwordHash     String        @map("password_hash")
+  expoPushToken    String?       @map("expo_push_token")
+  status           AccountStatus @default(ACTIVE)
+  blockId          String?       @map("block_id")
+  householdSize    Int           @default(1) @map("household_size")
+  /// Movilidad reducida, adultos mayores, etc. Prioriza a las brigadas si no confirma.
+  needsAssistance  Boolean       @default(false) @map("needs_assistance")
+  /// Ubicación de la vivienda
+  location         Unsupported("geometry(Point, 4326)")?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  block         Block?          @relation(fields: [blockId], references: [id])
+  preparedness  Preparedness?
+  deliveries    AlertDelivery[]
+  reports       Report[]        @relation("ResidentReports")
+  notifications Notification[]
+  refreshTokens RefreshToken[]
+
+  @@index([blockId])
+  @@map("residents")
+}
+
+/// Brigadista (≈ Collector en EcoPoint)
+model Brigadist {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  passwordHash  String        @map("password_hash")
+  expoPushToken String?       @map("expo_push_token")
+  institution   Institution
+  sectorId      String?       @map("sector_id")
+  status        AccountStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  sector          Sector?      @relation(fields: [sectorId], references: [id])
+  inspections     Inspection[]
+  reports         Report[]     @relation("BrigadistReports")
+  assignedReports Report[]     @relation("AssignedReports")
+  refreshTokens   RefreshToken[]
+
+  @@map("brigadists")
+}
+
+/// Operador del centro de monitoreo (≈ Admin en EcoPoint)
+model Operator {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  alerts        AlertEvent[]
+  refreshTokens RefreshToken[]
+
+  @@map("operators")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  tokenHash   String   @unique @map("token_hash")
+  role        Role // en EcoPoint era String libre
+  residentId  String?  @map("resident_id")
+  brigadistId String?  @map("brigadist_id")
+  operatorId  String?  @map("operator_id")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  resident  Resident?  @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  brigadist Brigadist? @relation(fields: [brigadistId], references: [id], onDelete: Cascade)
+  operator  Operator?  @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// ─── Territorio ──────────────────────────────────────────────────────────────
+
+/// Villa El Arrayán, Marquesa, Nueva Talcuna, El Almendral, San Carlos, Huanta…
+model Sector {
+  id   String @id @default(uuid())
+  name String @unique
+  geom Unsupported("geometry(MultiPolygon, 4326)")?
+
+  blocks     Block[]
+  brigadists Brigadist[]
+  routes     EvacuationRoute[]
+
+  @@map("sectors")
+}
+
+/// Manzana (≈ RecyclingPoint en EcoPoint, pero como polígono)
+model Block {
+  id         String @id @default(uuid())
+  code       String @unique // "M-07"
+  sectorId   String @map("sector_id")
+  population Int    @default(0)
+  households Int    @default(0)
+  geom       Unsupported("geometry(Polygon, 4326)")?
+
+  sector    Sector          @relation(fields: [sectorId], references: [id])
+  residents Resident[]
+  exposures BlockExposure[]
+  reports   Report[]
+
+  @@map("blocks")
+}
+
+model InfrastructureAsset {
+  id        String         @id @default(uuid())
+  type      AssetType
+  name      String // "Defensa acceso oriente, puente Ing. Díaz Ossa"
+  condition AssetCondition @default(GOOD)
+  lengthM   Float?         @map("length_m")
+  geom      Unsupported("geometry(Geometry, 4326)")?
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  @@map("infrastructure_assets")
+}
+
+// ─── Modelo hidráulico ───────────────────────────────────────────────────────
+
+/// Resultado HEC-RAS 2D importado desde ArcGIS Pro
+model FloodScenario {
+  id             String   @id @default(uuid())
+  returnPeriod   Int      @map("return_period") // 2, 10, 50, 100
+  peakFlowM3s    Float    @map("peak_flow_m3s")
+  modelVersion   String   @map("model_version") // "HEC-RAS 6.5 · malla 5 m"
+  demResolutionM Float    @map("dem_resolution_m")
+  /// Ficha 7 (legal): no es delimitación oficial hasta validación de un organismo competente
+  validated      Boolean  @default(false)
+  importedAt     DateTime @default(now()) @map("imported_at")
+
+  zones     FloodZone[]
+  exposures BlockExposure[]
+  alerts    AlertEvent[]
+
+  @@unique([returnPeriod, modelVersion])
+  @@map("flood_scenarios")
+}
+
+model FloodZone {
+  id         String     @id @default(uuid())
+  scenarioId String     @map("scenario_id")
+  depthClass DepthClass @map("depth_class")
+  geom       Unsupported("geometry(MultiPolygon, 4326)")
+
+  scenario FloodScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@index([scenarioId])
+  @@map("flood_zones")
+}
+
+/// Precalculado con ST_Intersection(block.geom, zone.geom) al importar un escenario
+model BlockExposure {
+  blockId    String @map("block_id")
+  scenarioId String @map("scenario_id")
+  maxDepthM  Float  @map("max_depth_m")
+  meanDepthM Float  @map("mean_depth_m")
+  wetAreaPct Float  @map("wet_area_pct")
+
+  block    Block         @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  scenario FloodScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@id([blockId, scenarioId])
+  @@map("block_exposures")
+}
+
+// ─── Hidrología ──────────────────────────────────────────────────────────────
+
+model HydroStation {
+  id                String  @id @default(uuid())
+  code              String  @unique
+  name              String
+  /// Umbrales en m³/s (configurables; los oficiales los define DGA/SENAPRED)
+  thresholdPreventiva Float @map("threshold_preventiva")
+  thresholdAmarilla   Float @map("threshold_amarilla")
+  thresholdRoja       Float @map("threshold_roja")
+  location          Unsupported("geometry(Point, 4326)")?
+
+  readings HydroReading[]
+
+  @@map("hydro_stations")
+}
+
+model HydroReading {
+  id         String   @id @default(uuid())
+  stationId  String   @map("station_id")
+  measuredAt DateTime @map("measured_at")
+  flowM3s    Float    @map("flow_m3s")
+  levelM     Float?   @map("level_m")
+
+  station HydroStation @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([stationId, measuredAt])
+  @@map("hydro_readings")
+}
+
+// ─── Alertas ─────────────────────────────────────────────────────────────────
+
+model AlertEvent {
+  id         String       @id @default(uuid())
+  level      AlertLevel
+  trigger    AlertTrigger
+  scenarioId String?      @map("scenario_id")
+  operatorId String?      @map("operator_id")
+  /// Si es null, aplica a todas las manzanas expuestas del escenario
+  sectorIds  String[]     @map("sector_ids")
+  note       String?
+  createdAt  DateTime     @default(now()) @map("created_at")
+  closedAt   DateTime?    @map("closed_at")
+
+  scenario   FloodScenario?  @relation(fields: [scenarioId], references: [id])
+  operator   Operator?       @relation(fields: [operatorId], references: [id])
+  deliveries AlertDelivery[]
+
+  @@map("alert_events")
+}
+
+/// Un mensaje personalizado por vecino, con su confirmación (doble vía)
+model AlertDelivery {
+  id          String          @id @default(uuid())
+  alertId     String          @map("alert_id")
+  residentId  String          @map("resident_id")
+  channel     DeliveryChannel
+  /// Texto ya personalizado: profundidad en su manzana, ruta y albergue
+  message     String
+  deliveredAt DateTime?       @map("delivered_at")
+  ackStatus   AckStatus       @default(PENDING) @map("ack_status")
+  ackAt       DateTime?       @map("ack_at")
+
+  alert    AlertEvent @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  resident Resident   @relation(fields: [residentId], references: [id], onDelete: Cascade)
+
+  @@unique([alertId, residentId])
+  @@index([alertId, ackStatus])
+  @@map("alert_deliveries")
+}
+
+// ─── Evacuación ──────────────────────────────────────────────────────────────
+
+model Shelter {
+  id        String  @id @default(uuid())
+  name      String // "Escuela Lucila Godoy Alcayaga"
+  address   String?
+  capacity  Int
+  occupancy Int     @default(0)
+  active    Boolean @default(false)
+  location  Unsupported("geometry(Point, 4326)")?
+
+  routes EvacuationRoute[]
+
+  @@map("shelters")
+}
+
+model EvacuationRoute {
+  id        String @id @default(uuid())
+  sectorId  String @map("sector_id")
+  shelterId String @map("shelter_id")
+  label     String // "Subir por calle Gabriela Mistral hacia el norte"
+  geom      Unsupported("geometry(LineString, 4326)")?
+
+  sector  Sector  @relation(fields: [sectorId], references: [id])
+  shelter Shelter @relation(fields: [shelterId], references: [id])
+
+  @@map("evacuation_routes")
+}
+
+// ─── Reportes e inspecciones ─────────────────────────────────────────────────
+
+model Report {
+  id                  String       @id @default(uuid())
+  /// FKs reales (en EcoPoint era un reporterId sin relación)
+  residentId          String?      @map("resident_id")
+  brigadistId         String?      @map("brigadist_id")
+  assignedBrigadistId String?      @map("assigned_brigadist_id")
+  blockId             String?      @map("block_id")
+  type                ReportType
+  description         String
+  photoUrl            String?      @map("photo_url")
+  location            Unsupported("geometry(Point, 4326)")?
+  status              ReportStatus @default(PENDING)
+  priority            Priority     @default(MEDIUM)
+  resolvedAt          DateTime?    @map("resolved_at")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  resident          Resident?    @relation("ResidentReports", fields: [residentId], references: [id])
+  brigadist         Brigadist?   @relation("BrigadistReports", fields: [brigadistId], references: [id])
+  assignedBrigadist Brigadist?   @relation("AssignedReports", fields: [assignedBrigadistId], references: [id])
+  block             Block?       @relation(fields: [blockId], references: [id])
+  inspections       Inspection[]
+
+  @@index([status, priority])
+  @@map("reports")
+}
+
+/// Atención en terreno (≈ Collection en EcoPoint)
+model Inspection {
+  id          String   @id @default(uuid())
+  brigadistId String   @map("brigadist_id")
+  reportId    String?  @map("report_id")
+  deliveryId  String?  @map("delivery_id") // vecino que pidió ayuda o no respondió
+  notes       String?
+  photoUrl    String?  @map("photo_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  brigadist Brigadist @relation(fields: [brigadistId], references: [id])
+  report    Report?   @relation(fields: [reportId], references: [id])
+
+  @@map("inspections")
+}
+
+// ─── Comunidad ───────────────────────────────────────────────────────────────
+
+/// Preparación familiar (reemplaza la gamificación por puntos de EcoPoint)
+model Preparedness {
+  id         String   @id @default(uuid())
+  residentId String   @unique @map("resident_id")
+  /// 0–100 según checklist completado
+  score      Int      @default(0)
+  /// { kit: true, rutaConocida: true, simulacro2025: false, ... }
+  checklist  Json     @default("{}")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+
+  @@map("preparedness")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  residentId String   @map("resident_id")
+  type       String
+  title      String
+  body       String
+  payload    Json     @default("{}")
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  resident Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}

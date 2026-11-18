@@ -1,0 +1,36 @@
+instrumento | 1.1.4.1                                                                                                                                    Temática 2:
+
+Matriz de vaciado de hallazgos                                                                                                                Oportunidades desde la Geomática
+
+                                                         Temática 1:
+
+                                                                                                   Limitaciones de Sistemas Actuales
+
+Tópico A:   Tópico A:  Problema: Google Flood Hub y plataforma                                                                                Solución: Integración SIG + Hidráulica bidimensional usando:
+Herramientas           DGA/SENAPRED operan con escalas inadecuadas                                                                            • ArcGIS Pro / QGIS para análisis espacial
+ de                    (resolución >30m), sin detalle topográfico local necesario                                                             • AutoCAD Civil 3D para diseño de secciones
+Monitoreo y            para simular el comportamiento de la lámina de agua sobre                                                              • HEC-RAS para modelación de flujos no permanentes
+Modelación             las manzanas de Vicuña.
+                                                                                                                                              Ventaja: Permite analizar escenarios extremos (retorno 100
+                       Evidencia: Los modelos actuales no capturan micro-relieve                                                              años) con costos 60% menores a estudios tradicionales y
+                       del cauce urbano ni obstrucciones locales (puentes,                                                                    resolución <5m.
+                       estrechamientos).
+                                                                                                                                              Innovación: Acoplamiento de pronósticos meteorológicos en
+                       Impacto: Subestimación del riesgo en sectores como                                                                     tiempo real con modelos hidráulicos locales.
+                       Calingasta, Marquesa y Leiva
+
+Tópico B:              Problema: Las defensas fluviales focalizadas (revestimiento                                                            Solución: Levantamiento territorial de precisión mediante:
+Vulnerabilidad         Ruta 5 - 570m, Puente Díaz Ossa) protegen sectores                                                                     • Fotogrametría con drones (resolución 5-10 cm/pixel)
+e                      específicos pero generan falsa sensación de seguridad y no                                                             • Vuelos programados pre/post evento
+Infraestructura        revelan qué otros asentamientos están en riesgo aguas                                                                  • Generación de DEM de alta precisión
+            Tópico B:  arriba/abajo.
+                                                                                                                                              Aplicación: Identificación exacta del grado de exposición de
+                       Evidencia: Durante eventos recientes de precipitaciones                                                                la Ruta 41-CH y zonas habitadas, permitiendo:
+                       intensas, se activaron evacuaciones preventivas en 80                                                                  • Priorización de intervenciones
+                       hogares no protegidos por infraestructura existente.                                                                   • Diseño de defensas complementarias
+                                                                                                                                              • Planificación de rutas de evacuación óptimas
+                       Impacto: Desprotección de sectores ribereños periféricos y
+                       quebradas secundarias.
+
+Integrantes:                                                                                                                          Curso:  Profesor:
+

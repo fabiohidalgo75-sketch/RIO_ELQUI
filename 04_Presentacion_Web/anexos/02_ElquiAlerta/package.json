@@ -1,0 +1,27 @@
+{
+  "name": "elquialerta",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "api:dev": "pnpm --filter @elquialerta/api dev",
+    "api:build": "pnpm --filter @elquialerta/api build",
+    "api:start": "pnpm --filter @elquialerta/api start:prod",
+    "admin:dev": "pnpm --filter @elquialerta/admin dev",
+    "admin:build": "pnpm --filter @elquialerta/admin build",
+    "mobile:start": "pnpm --filter @elquialerta/mobile start",
+    "db:migrate": "pnpm --filter @elquialerta/api prisma:migrate",
+    "db:generate": "pnpm --filter @elquialerta/api prisma:generate",
+    "db:seed": "pnpm --filter @elquialerta/api prisma:seed",
+    "db:studio": "pnpm --filter @elquialerta/api prisma:studio",
+    "db:reset": "pnpm --filter @elquialerta/api prisma:reset",
+    "types:build": "pnpm --filter @elquialerta/shared-types build",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f",
+    "infra:build":"docker compose down && docker compose up -d --build"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=11.0.0"
+  }
+}

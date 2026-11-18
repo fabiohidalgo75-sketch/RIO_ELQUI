@@ -1,0 +1,40 @@
+instrumento (a) | 1.1.2.2
+
+Preparación de pauta de observación no participante
+
+ Objetivo general de la investigación: Comprender el entorno y las actividades en sectores de Vicuña cercanos al río Elqui para identificar zonas vulnerables y oportunidades de innovación que mejoren la anticipación, detección y comunicación del riesgo de crecidas e
+ inundaciones.
+
+Identificar las características del entorno urbano cercano al río Elqui que puedan aumentar la exposición de la     Sectores residenciales    Cercanía real de viviendas, caminos, equipamientos e    Fotografías georreferenciadas,
+población ante una crecida.                                                                                         y áreas cercanas al       infraestructura respecto del río. Identificar loteos y  ficha de terreno y ubicación en
+                                                                                                                    cauce en el tramo         poblados ubicados en las riberas de los cauces, así     mapa (ArcGIS Pro / QGIS)
+  Reconocer las actividades que se desarrollan habitualmente en sectores próximos al río.                           urbano de Vicuña          como microbasurales en las riberas del río Elqui.
+
+ Identificar infraestructura y elementos existentes relacionados con la protección o prevención frente a crecidas    Habitantes,              Uso de espacios para circulación, vivienda, comercio,   Ficha de observación y
+                                                                                                                     peatones, vehículos y    recreación y agricultura, destacando cultivos y         fotografías.
+  Reconocer sectores donde una eventual crecida pueda generar mayores dificultades para la movilidad o               actividades cercanas     huertos ribereños alimentados por acequias que
+  evacuación de la población.                                                                                        al borde del río Elqui.  atraviesan la ciudad.                                   Fotografías georreferenciadas y
+                                                                                                                                                                                                      registro en mapa.
+   Registrar elementos territoriales que puedan utilizarse posteriormente para elaborar herramientas de             Puentes, defensas         Evaluar ubicación y estado de elementos de
+   identificación y visualización de zonas potencialmente inundables                                                fluviales, muros,         protección y comunicación del riesgo, incluyendo el     Ficha de terreno, fotografías y
+                                                                                                                    gaviones, señalética de   avance del Puente Marquesa y la visibilidad de la       croquis/mapa.
+   Identificar la presencia de elementos de comunicación y señalización del riesgo, así como de sistemas de alerta  riesgo, accesos y vías    señalización existente.
+   temprana.                                                                                                        cercanas.                                                                         Coordenadas, fotografías y
+                                                                                                                                              Identificar puntos de aislamiento y vías limitadas,     cartografía digital (shapefiles,
+                                                                                                                     Calles, caminos,         destacando sectores críticos en Vicuña: 376 de los      KMZ).
+                                                                                                                     puentes, accesos y       1.230 puntos críticos regionales, incluyendo Huanta,
+                                                                                                                     sectores poblados        Nueva Talcuna y Marquesa, históricamente afectados      Ficha de observación,
+                                                                                                                     próximos al río          por bajadas de quebradas.                               fotografías y registro en mapa.
+
+                                                                                                                    Tramo urbano del río      Identificar sectores vulnerables, infraestructura y
+                                                                                                                    Elqui y quebradas         accesos relevantes para el análisis de inundación,
+                                                                                                                    tributarias cercanas      usando como referencia los mapas de susceptibilidad
+                                                                                                                    como Leiva, San Carlos    del MINVU (2018) y los mapas de riesgo del PRI Elqui.
+                                                                                                                    y Arrayán.
+                                                                                                                                              Evaluar señalética de riesgo, funcionamiento del SAE
+                                                                                                                    Señalética y rutas de     en evacuaciones recientes y presencia de albergues
+                                                                                                                    evacuación, puntos de     habilitados en sectores vulnerables.
+                                                                                                                    encuentro, sistemas
+                                                                                                                    SAE y paneles
+                                                                                                                    informativos.
+

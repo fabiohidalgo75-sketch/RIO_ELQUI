@@ -1,0 +1,46 @@
+instrumento (a) | 1.1.2.2
+
+Preparación de pauta de observación no participante
+
+Objetivo general de la investigación
+
+        Comprender las condiciones del entorno, actividades y situaciones observables en sectores de Vicuña próximos al río Elqui, con el propósito de identificar posibles zonas vulnerables y oportunidades de innovación que permitan
+        mejorar la anticipación, identificación y comunicación del riesgo asociado a crecidas e inundaciones.
+
+Objetivos especíﬁcos                                                                                                                   a observar                             Información                           Formato de
+                                                                                                                                                                             que se busca                              registro
+1|  Identificar las características del entorno urbano cercano al río Elqui que puedan aumentar la exposición de la población  Sectores
+                                                                                                                               residenciales y       Cercanía de viviendas, caminos, equipamientos     Fotografías, ficha de terreno y
+    ante una crecida.                                                                                                          espacios próximos al  e infraestructura respecto del río.               ubicación en mapa.
+                                                                                                                               cauce.
+
+2|  Reconocer las actividades que se desarrollan habitualmente en sectores próximos al río.                                    Habitantes,           Uso de los espacios: circulación, vivienda,       Ficha de observación y
+                                                                                                                               peatones, vehículos   comercio, recreación, agricultura u otras         fotografías.
+                                                                                                                               y actividades         actividades.
+                                                                                                                               cercanas al borde
+                                                                                                                               del río
+
+3|  Identificar infraestructura y elementos existentes relacionados con la protección o prevención frente a crecidas.          Puentes, defensas     Existencia, ubicación y condición observable de   Fotografías georreferenciadas
+                                                                                                                               fluviales, muros,     elementos de protección y comunicación del        y registro en mapa.
+                                                                                                                               gaviones,             riesgo
+                                                                                                                               señalética, accesos
+                                                                                                                               y vías.
+
+4|  Reconocer sectores donde una eventual crecida pueda generar mayores dificultades para la movilidad o evacuación de la      Calles, caminos,      Posibles puntos de aislamiento, vías limitadas,   Ficha de terreno, fotografías y
+                                                                                                                                                     obstáculos y sectores con mayor concentración     croquis/mapa.
+    población.                                                                                                                 puentes, accesos y    de población o infraestructura
+
+                                                                                                                               sectores poblados
+
+                                                                                                                               próximos al río.
+
+5|  Registrar elementos territoriales que puedan utilizarse posteriormente para elaborar herramientas de identificación y      Tramo urbano del      Sectores vulnerables, infraestructura relevante,  Coordenadas, fotografías y
+                                                                                                                               río Elqui y su        accesos y puntos que puedan incorporarse al       cartografía digital.
+    visualización de zonas potencialmente inundables.                                                                          entorno inmediato.    análisis y simulación de inundación.
+
+6|
+
+7|
+
+Integrantes:                                                                                                                   Curso:                Profesor:
+

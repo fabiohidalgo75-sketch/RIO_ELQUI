@@ -1,0 +1,38 @@
+instrumento (a) | 1.1.2.3
+
+Preparación de entrevista en profundidad a expertos
+
+Objetivo general de la investigación
+
+    Comprender la percepción, experiencia y necesidades de los habitantes de Vicuña frente al riesgo asociado a crecidas del río Elqui, con el propósito de identificar oportunidades de innovación
+    que permitan mejorar la anticipación, identificación y comunicación de posibles zonas inundables que puedan afectar a la población y la infraestructura.
+
+Objetivos especíﬁcos                                                                                          Experto                                 Información          Formato de
+                                                                                                           a entrevistar                             que se busca          la entrevista
+1|
+                                                                                                          Ingeniero       Conocer qué datos topográficos, geodésicos,      Presencial
+           ¿Qué información y datos del terreno considera necesarios para realizar una                    Geomensor y     hidrológicos y geomáticos son necesarios,
+           caracterización adecuada del río Elqui y analizar el riesgo de crecidas en el sector           Geomatico       qué elementos del cauce y terreno se deben       Presencial
+           urbano de Vicuña?                                                                                              considerar y qué aspectos se deben tener en
+                                                                                                          Ingeniero       cuenta para obtener información confiable.       Presencial
+2|                                                                                                        Geomensor y
+                                                                                                          Geomatico         Conocer qué información requiere el
+          ¿Qué información y criterios se deberían considerar para realizar un modelamiento                                 modelamiento, qué variables y criterios se
+          hidráulico en ArcGIS Pro que permita identificar posibles zonas afectadas por crecidas del      Ingeniero         deben considerar y cómo utilizar los
+          río Elqui?                                                                                      Geomensor y       resultados para representar posibles
+                                                                                                          Geomatico         zonas afectadas por crecidas.
+3|
+                                                                                                                             Conocer cómo integrar los resultados
+         ¿Cómo se podrían utilizar los resultados del levantamiento y del modelamiento hidráulico                            obtenidos en ArcGIS Pro, qué criterios
+         en ArcGIS Pro para identificar y priorizar los sectores más críticos frente a futuras crecidas?                     utilizar para determinar sectores críticos y
+                                                                                                                             cómo estos resultados pueden apoyar la
+4|                                                                                                                           prevención y planificación territorial.
+
+5|
+
+6|
+
+7|
+
+Integrantes:                                                                                              Curso:          Profesor:
+

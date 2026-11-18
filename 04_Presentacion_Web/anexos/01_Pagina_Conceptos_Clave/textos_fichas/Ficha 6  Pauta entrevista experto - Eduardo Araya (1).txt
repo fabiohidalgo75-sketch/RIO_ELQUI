@@ -1,0 +1,52 @@
+instrumento (b) | 1.1.2.3
+
+Pauta de entrevista en profundidad a expertos
+
+Nombre Eduardo Araya Vidal                                                                                                                 Medio de registro: Audio de vos y Notas escritas
+
+Edad                                                                                                                                       Fecha:
+Ocupación Ingeniero en Geomensura, Topógrafo, Docente del Área Geomensura y Topografía, y Asesor Geomensor en MIBE Ingeniería Consultora.  Duración:
+
+Tiempo en el cargo
+
+Relación con el servicio  Experto en el área de geomensura, teledetección, sistemas de información geográfica (SIG) y educación
+
+                          superior, con experiencia en asesorías técnicas aplicadas a la ingeniería.
+
+Temáticas                                             Citas clave
+1|
+                                                        "Hoy el desafío ya no es solo levantar datos, sino garantizar su calidad, densidad y trazabilidad. En proyectos como los de
+           Tecnología en Geomensura: Estado actual y    Vicuña, donde la topografía define directamente la modelación hidráulica, un error de medio metro en el DEM puede
+           desafíos en proyectos topográficos           significar subestimar o sobreestimar zonas inundables. La tecnología GNSS de alta precisión y los drones con sensores
+           modernos.                                    LiDAR han revolucionado el levantamiento, pero su adopción aún es desigual en el territorio nacional."
+
+2|  Sistemas de Información: Integración práctica     "La integración SIG-Teledetección no es un lujo, es una necesidad operativa. En terreno, combinamos ortofotos de alta
+                                                      resolución con modelos digitales de elevación para cruzar capas de uso de suelo, infraestructura y pendiente. Esto permite
+    de SIG y Teledetección en terreno.                identificar, por ejemplo, qué manzanas de Vicuña quedan bajo una lámina de agua de 1,5 metros. Sin esa integración, la
+                                                      toma de decisiones es ciega."
+
+3 | Docencia y Perfil Profesional: Competencias         "El perfil del geomensor actual debe ser híbrido: saber operar un equipo GNSS, pero también manejar software de
+                                                        modelación como HEC-RAS o QGIS. En la docencia trabajamos para que el egresado no sea solo un 'operador de
+          necesarias en la formación técnica de         instrumentos', sino un profesional capaz de interpretar el territorio, entender el riesgo y comunicar resultados. La formación
+          Educación Superior.                           técnica debe incluir trabajo de campo real, no solo simulación en aula."
+
+4|  Consultoría: Resolución de problemas              "En MIBE nos enfrentamos constantemente a la falta de información base confiable. Muchos municipios o servicios públicos
+                                                      trabajan con cartografía desactualizada o con escalas inadecuadas. Nuestro rol es generar el insumo geomático preciso —
+    habituales en asesorías geométricas               levantamientos topográficos, modelos digitales, ortofotos— que permita a los organismos tomar decisiones fundadas. Un
+                                                      caso típico es cuando un proyecto de defensa ribereña se diseña sin un modelo topográfico actualizado: el resultado es una
+    (experiencia en MIBE Ingeniería).                 obra que no resuelve el problema real."
+
+5|                                                      "El diplomado en SIG o en teledetección marca la diferencia en el mercado laboral. Un geomensor que solo sabe levantar
+                                                        puntos con estación total tiene un techo profesional; uno que además puede procesar nubes de puntos, generar modelos
+           Especialización: El impacto de la            3D y analizarlos en un SIG, accede a proyectos de mayor complejidad y mejor remuneración. La actualización continua no
+           actualización continua (diplomados) en       es opcional, es parte del oficio."
+           la empleabilidad.
+
+6|                                                    "El futuro va hacia la automatización del procesamiento: inteligencia artificial para clasificación de cobertura, drones
+                                                      autónomos para levantamientos recurrentes, y plataformas en la nube para compartir datos en tiempo real. En el contexto
+         Futuro del Área: Proyecciones,               de riesgo de inundaciones, imagino sistemas donde el levantamiento topográfico se actualice automáticamente post-
+         automatización y nuevas metodologías en      crecida, alimentando modelos hidráulicos en tiempo casi real. Eso hoy es técnicamente posible; falta masificarlo."
+         el rubro.
+
+Integrantes:                                                                                          Curso:                               Profesor:
+

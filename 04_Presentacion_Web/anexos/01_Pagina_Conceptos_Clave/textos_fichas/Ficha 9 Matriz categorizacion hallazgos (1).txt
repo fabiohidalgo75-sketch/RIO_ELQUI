@@ -1,0 +1,40 @@
+instrumento | 1.1.4.2
+
+Matriz de categorización de hallazgos
+
+                                   Insight:                      Insight:              Insight:                Insight:             Insight:            Insight:
+
+                         Alertas abstractas            Protección parcial    Vacío cartográfico        Viabilidad de         Concentración      Brecha de
+                                                                             local                     innovación            de vulnerabilidad  comunicación
+                                 Descripción: Los
+Descripción                      sistemas actuales      Las defensas         Faltan insumos         Los proyectos            Los sectores         territorial
+                                 emiten alertas        físicas (gaviones,    topográficos de alta   geomáticos pueden        residenciales y
+                                 basadas en            pretiles) solucionan  resolución que         suplir las deficiencias  comerciales más    Existe
+                                 umbrales de           el problema           determinen las         de los organismos        cercanos al cauce  desconexión entre
+                                 caudal, pero no       puntual, pero no      pendientes reales,     centralizados            presentan mayor    la infraestructura
+                                 traducen ese          evalúan el sistema    afectando la correcta  generando cartografía    exposición, con    de protección
+                                 volumen de agua       fluvial en su         toma de decisiones     de riesgo asequible y    viviendas,         existente y la
+                                 a una superficie      conjunto ante         para evacuación.       precisa.                 equipamientos y    percepción de
+                                 territorial afectada  crecidas                                                              vías en zonas de   riesgo de la
+                                                       extraordinarias.                                                      alto riesgo.       población,
+                                                                                                                                                limitando la
+                                                                                                                                                efectividad de las
+                                                                                                                                                medidas de
+                                                                                                                                                prevención.
+
+                         "No simula                     "Su protección        "La calidad del        "Integración de         "La proximidad     "La señalética,
+                         visualmente cómo              está concentrada      modelo depende         levantamiento            al río condiciona  accesos y
+                         se comporta la                en un sector          directamente de la     topográfico, GNSS,       usos de suelo      elementos de
+                         lámina de agua                específico. No        precisión de la        fotogrametría, SIG y     que aumentan la    comunicación del
+                         sobre la topografía           permite determinar    topografía, DEM,       HEC-RAS para             exposición:        riesgo no integran
+                         ni qué manzanas o             qué otros sectores    caudales y             generar modelos          circulación,       una visión
+                         infraestructuras              de Vicuña podrían     parámetros             hidráulicos y mapas      vivienda,          sistémica del
+                         específicas se                inundarse".           hidráulicos            de inundación".          comercio y         territorio ni
+                         verían anegadas".                                   utilizados".                                    recreación en      consideran puntos
+                                                                                                                             borde ribereño."   críticos de
+                                                                                                                                                evacuación."
+
+Reﬂexiones/ Citas clave
+
+Integrantes:                                                                                        Curso:                   Profesor:
+

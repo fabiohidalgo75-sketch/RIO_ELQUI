@@ -1,0 +1,63 @@
+instrumento | 1.1.3.1
+
+Matriz PESTAL
+
+ Desafío ¿Cómo innovar en la modelación hidráulica del río Elqui en Vicuña, mediante levantamiento topográfico y HEC-RAS, para anticipar crecidas extremas e identificar zonas inundables que puedan afectar a la población y la
+
+            infraestructura?
+
+      Político     Factores                    Oportunidades                                                    Amenazas
+   Económico       Político
+                Económico    Interés de organismos públicos y municipales en la            Falta de coordinación entre instituciones o dificultad
+       Social                gestión del riesgo de desastres y planificación territorial.  para acceder a información oficial actualizada. Los
+  Tecnológico       Social
+                             Posibilidad de que los resultados sirvan como apoyo           cambios de prioridades institucionales pueden limitar la
+    Ambiental   Tecnológico                                                                continuidad de iniciativas preventivas.
+       Legal                 técnico para prevención y toma de decisiones.
+                Ambiental
+Integrantes:        Legal    La identificación anticipada de zonas inundables puede        Los levantamientos topográficos, campañas de terreno y
+                             contribuir a disminuir pérdidas económicas en viviendas,      adquisición de información de alta resolución pueden
+                                                                                           requerir recursos económicos importantes. Una crecida
+                             caminos, puentes, servicios y actividades productivas.        extrema puede generar daños significativos a
+                             Uso de herramientas como HEC­RAS permite
+                                                                                           infraestructura y actividades productivas.
+                             desarrollar análisis con costos relativamente bajos frente
+                                                                                           Parte de la población puede desconocer el nivel real de
+                             a estudios tradicionales de gran escala.                      exposición frente a una crecida. La existencia de
+                                                                                           viviendas, caminos y actividades cercanas al río aumenta
+                             Mayor conocimiento de las zonas potencialmente
+                                                                                           la vulnerabilidad de determinados sectores.
+                             inundables puede mejorar la preparación de la
+                             comunidad y apoyar procesos de evacuación y
+                             prevención. Los mapas de inundación permiten
+
+                             comunicar el riesgo de manera visual y comprensible.
+
+                             Integración de levantamiento topográfico, GNSS,               La calidad del modelo depende directamente de la
+                             fotogrametría, SIG y HEC-RAS para generar modelos
+                             hidráulicos y mapas de inundación. Posibilidad de             precisión de la topografía, DEM, caudales y parámetros
+                                                                                           hidráulicos utilizados. Errores en los datos de entrada
+                             utilizar ArcGIS Pro para analizar y visualizar resultados
+                                                                                           pueden generar resultados poco representativos.
+                             y generar productos cartográficos de apoyo a la gestión
+                                                                                           Eventos meteorológicos extremos, variaciones de caudal,
+                             territorial.                                                  erosión, sedimentación y cambios en la geometría del
+
+                             Permite comprender el comportamiento del río Elqui            cauce pueden modificar las zonas inundables. Los
+
+                             ante distintos escenarios de crecida y reconocer sectores     escenarios futuros pueden superar los registros históricos
+
+                             naturalmente susceptibles a inundación. Puede apoyar          utilizados.
+                             una planificación territorial más compatible con la
+                             dinámica natural del cauce.
+
+                             El estudio puede aportar información técnica para             El uso del cauce y la ejecución de intervenciones físicas
+                             planificación territorial, gestión del riesgo y protección    están sujetos a autorizaciones y normativa vigente.
+                                                                                           Además, los resultados académicos de una simulación no
+                             de infraestructura, considerando normativa chilena
+                             relacionada con cauces naturales y emergencias                deben presentarse como delimitaciones oficiales de
+
+                                                                      Curso:               riesgo sin validación de los organismos competentes.
+
+                                                                                                 Profesor:
+

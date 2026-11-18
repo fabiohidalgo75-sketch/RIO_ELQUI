@@ -1,0 +1,663 @@
+<title>ElquiAlerta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: consola de operaciones. Barra superior teñida por el nivel de alerta; riel de navegación | mapa | panel lateral; línea de tiempo con hidrograma abajo. Vistas móviles (brigada, vecino) en marco de teléfono. Tokens con la misma estructura MD3 de EcoPoint. */
+:root{
+  --primary:#0b5b8a; --on-primary:#ffffff; --primary-soft:#dcecf7;
+  --tertiary:#0f766e; --tertiary-soft:#d5f0ec;
+  --surface:#eef3f6; --surface-container:#ffffff; --surface-high:#f6f9fb;
+  --on-surface:#132029; --on-surface-variant:#4f6170; --outline-variant:#d3dde3;
+  --lv-normal:#64748b; --lv-prev:#2e8b57; --lv-ama:#c98a0b; --lv-roja:#c0362c; --help:#7c3aed;
+  --d1:#b9dcf0; --d2:#5aa4d6; --d3:#1d5f94; --river:#0b5b8a;
+  --land-lo:#e7e3d3; --land-hi:#a99a74; --road:#3a3f44;
+  --shadow:0 6px 24px rgba(11,91,138,.12); --lvc:var(--lv-normal);
+  --f-head:"Plus Jakarta Sans",system-ui,sans-serif;
+  --f-body:"Work Sans",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --primary:#7cc4f0; --on-primary:#06202f; --primary-soft:#173447;
+  --tertiary:#5fd4c4; --tertiary-soft:#123a36;
+  --surface:#0b1317; --surface-container:#121d23; --surface-high:#17242b;
+  --on-surface:#e3edf2; --on-surface-variant:#9db0bc; --outline-variant:#25343d;
+  --lv-normal:#8a9bab; --lv-prev:#58c98b; --lv-ama:#f0b93f; --lv-roja:#f2705f; --help:#b394ff;
+  --d1:#24506b; --d2:#3b88bd; --d3:#9fd6f7; --river:#4ea6dc;
+  --land-lo:#22261f; --land-hi:#5d5640; --road:#d8dde2;
+  --shadow:0 6px 24px rgba(0,0,0,.4); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --primary:#7cc4f0; --on-primary:#06202f; --primary-soft:#173447;
+  --tertiary:#5fd4c4; --tertiary-soft:#123a36;
+  --surface:#0b1317; --surface-container:#121d23; --surface-high:#17242b;
+  --on-surface:#e3edf2; --on-surface-variant:#9db0bc; --outline-variant:#25343d;
+  --lv-normal:#8a9bab; --lv-prev:#58c98b; --lv-ama:#f0b93f; --lv-roja:#f2705f; --help:#b394ff;
+  --d1:#24506b; --d2:#3b88bd; --d3:#9fd6f7; --river:#4ea6dc;
+  --land-lo:#22261f; --land-hi:#5d5640; --road:#d8dde2;
+  --shadow:0 6px 24px rgba(0,0,0,.4); color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--surface);color:var(--on-surface);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-head);margin:0;line-height:1.15}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.label{font:600 11px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--on-surface-variant)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* ── Barra superior teñida ── */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--lvc,var(--lv-normal))}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in oklab,var(--lvc) 13%,var(--surface-container));
+  border-bottom:3px solid var(--lvc);display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding-block:10px;transition:background .4s,border-color .4s}
+.brand{display:flex;align-items:center;gap:8px;font:800 19px var(--f-head);color:var(--primary)}
+.brand svg{width:26px;height:26px}
+.level{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 8px;border-radius:999px;background:var(--lvc);color:#fff;font:700 14px var(--f-head);transition:background .4s}
+.level .dot{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.7)}
+.level.live .dot{animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}100%{box-shadow:0 0 0 10px rgba(255,255,255,0)}}
+.flowbox{display:flex;align-items:baseline;gap:6px}
+.flowbox b{font:600 20px var(--f-mono)}
+.flowbox span{color:var(--on-surface-variant);font-size:13px}
+.trend{font-weight:700}
+.clock{font:500 13px var(--f-mono);color:var(--on-surface-variant)}
+.spacer{flex:1}
+.seg{display:inline-flex;background:var(--surface-high);border:1px solid var(--outline-variant);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:999px;font:600 13px var(--f-body);color:var(--on-surface-variant);white-space:nowrap}
+.seg button[aria-pressed=true]{background:var(--primary);color:var(--on-primary)}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--outline-variant);background:var(--surface-container);display:grid;place-items:center}
+.iconbtn svg{width:18px;height:18px}
+.btn{border:0;border-radius:10px;padding:10px 16px;font:600 14px var(--f-body);display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn-primary{background:var(--primary);color:var(--on-primary);box-shadow:var(--shadow)}
+.btn-ghost{background:transparent;border:1px solid var(--outline-variant)}
+.btn-danger{background:var(--lv-roja);color:#fff}
+.btn svg{width:16px;height:16px}
+
+/* ── Vista operador ── */
+.ops{display:grid;grid-template-columns:64px minmax(0,1fr) 380px;gap:14px;padding-block:14px;max-width:1600px;margin:0 auto}
+.rail{display:flex;flex-direction:column;gap:6px;align-items:center;padding-top:4px}
+.rail button{width:48px;height:48px;border-radius:14px;border:0;background:transparent;display:grid;place-items:center;color:var(--on-surface-variant);position:relative}
+.rail button svg{width:22px;height:22px}
+.rail button[aria-current=true]{background:var(--primary-soft);color:var(--primary)}
+.rail .badge{position:absolute;top:4px;right:4px;min-width:17px;height:17px;border-radius:9px;background:var(--lv-roja);color:#fff;font:600 10px var(--f-mono);display:grid;place-items:center;padding:0 4px}
+.card{background:var(--surface-container);border:1px solid var(--outline-variant);border-radius:16px;min-width:0}
+.mapcard{display:grid;grid-template-rows:auto 1fr auto;overflow:hidden}
+.maptools{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--outline-variant)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--outline-variant);background:var(--surface-high);border-radius:999px;padding:5px 11px;font:500 13px var(--f-body);display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed=true]{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.mapwrap{position:relative;background:var(--surface-high);min-height:0}
+.mapwrap svg{display:block;width:100%;height:auto}
+.maplegend{position:absolute;left:12px;bottom:12px;background:color-mix(in oklab,var(--surface-container) 92%,transparent);border:1px solid var(--outline-variant);border-radius:10px;padding:8px 10px;display:grid;gap:4px;font-size:12px}
+.maplegend span{display:flex;align-items:center;gap:6px}
+.maplegend i{width:14px;height:10px;border-radius:2px;display:inline-block}
+.notvalid{position:absolute;right:12px;top:12px;background:var(--surface-container);border:1px dashed var(--lv-ama);color:var(--on-surface-variant);border-radius:8px;padding:4px 8px;font-size:12px}
+.blk{cursor:pointer;transition:fill-opacity .2s}
+.blk:hover{stroke-width:3}
+.pin{cursor:pointer}
+
+/* timeline */
+.timeline{border-top:1px solid var(--outline-variant);padding:10px 14px 12px;display:grid;gap:6px}
+.tlhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.play{width:38px;height:38px;border-radius:50%;border:0;background:var(--primary);color:var(--on-primary);display:grid;place-items:center}
+.play svg{width:16px;height:16px}
+.hydro svg{display:block;width:100%;height:auto}
+input[type=range]{width:100%;accent-color:var(--primary)}
+
+/* panel lateral */
+.side{display:grid;gap:14px;align-content:start;min-width:0}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{padding:12px 14px;display:grid;gap:4px}
+.kpi b{font:600 26px var(--f-mono);line-height:1.1}
+.kpi small{color:var(--on-surface-variant);font-size:12.5px}
+.kpi.wide{grid-column:1/-1}
+.stack{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--outline-variant)}
+.stack span{display:block;height:100%;transition:width .4s}
+.acklegend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--on-surface-variant)}
+.acklegend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px}
+.tabs{display:flex;gap:4px;padding:6px;border-bottom:1px solid var(--outline-variant)}
+.tabs button{flex:1;border:0;background:transparent;padding:8px;border-radius:10px;font:600 13px var(--f-body);color:var(--on-surface-variant)}
+.tabs button[aria-selected=true]{background:var(--primary-soft);color:var(--primary)}
+.list{max-height:430px;overflow:auto;padding:6px}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;border:0;background:transparent;width:100%;text-align:left}
+.row:hover{background:var(--surface-high)}
+.row[aria-pressed=true]{background:var(--primary-soft)}
+.row .t{font-weight:600}
+.row .s{font-size:12.5px;color:var(--on-surface-variant)}
+.sq{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font:700 12px var(--f-mono);color:#fff}
+.bar{height:6px;border-radius:999px;background:var(--outline-variant);overflow:hidden;width:70px}
+.bar span{display:block;height:100%;background:var(--d3)}
+.pill{font:600 11px var(--f-body);padding:3px 8px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+.p-PENDING{background:color-mix(in oklab,var(--lv-roja) 16%,transparent);color:var(--lv-roja)}
+.p-VERIFYING{background:color-mix(in oklab,var(--lv-ama) 18%,transparent);color:var(--lv-ama)}
+.p-ATTENDED{background:color-mix(in oklab,var(--lv-prev) 18%,transparent);color:var(--lv-prev)}
+.p-ESCALATED{background:color-mix(in oklab,var(--help) 18%,transparent);color:var(--help)}
+.empty{padding:22px 12px;text-align:center;color:var(--on-surface-variant);font-size:14px}
+.detail{padding:14px;display:grid;gap:12px}
+.detail .hd{display:flex;align-items:start;justify-content:space-between;gap:8px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dgrid div{background:var(--surface-high);border-radius:10px;padding:8px 10px}
+.dgrid b{display:block;font:600 18px var(--f-mono)}
+.dgrid small{color:var(--on-surface-variant);font-size:12px}
+.msgprev{background:var(--surface-high);border-left:3px solid var(--lvc);border-radius:8px;padding:10px 12px;font-size:13.5px}
+
+/* ── Vistas móviles ── */
+.mobile{display:flex;flex-wrap:wrap;justify-content:center;gap:28px 48px;padding-block:24px 40px;max-width:1200px;margin:0 auto;align-items:flex-start}
+.phone{width:min(380px,100%);height:760px;border-radius:40px;border:10px solid #10181d;background:var(--surface);overflow:hidden;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.25);display:grid;grid-template-rows:auto 1fr auto}
+.ph-top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;background:var(--surface-container);border-bottom:3px solid var(--lvc)}
+.ph-body{overflow:auto;position:relative}
+.ph-nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface-container);border-top:1px solid var(--outline-variant);padding:8px 6px 12px}
+.ph-nav button{border:0;background:transparent;display:grid;justify-items:center;gap:3px;font-size:11.5px;color:var(--on-surface-variant)}
+.ph-nav button span{width:54px;height:28px;border-radius:14px;display:grid;place-items:center}
+.ph-nav button svg{width:20px;height:20px}
+.ph-nav button[aria-current=true]{color:var(--primary);font-weight:600}
+.ph-nav button[aria-current=true] span{background:var(--primary-soft)}
+.sheet{position:absolute;left:10px;right:10px;bottom:10px;background:var(--surface-container);border-radius:20px;border:1px solid var(--outline-variant);box-shadow:var(--shadow);padding:10px 16px 16px;display:grid;gap:10px}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--outline-variant);margin:0 auto}
+.casecount{display:flex;gap:6px;flex-wrap:wrap}
+.status-card{margin:14px;border-radius:20px;padding:16px;color:#fff;background:var(--lvc);display:grid;gap:8px;transition:background .4s}
+.status-card .big{font:800 24px var(--f-head)}
+.status-card .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.status-card .btns button{border:0;border-radius:12px;padding:11px 8px;font:700 14px var(--f-body);background:#fff;color:#132029}
+.status-card .btns button.help{background:rgba(0,0,0,.25);color:#fff;border:1px solid rgba(255,255,255,.6)}
+.status-card .btns button[aria-pressed=true]{outline:3px solid #fff;outline-offset:2px}
+.mcard{margin:0 14px 12px;padding:14px;display:grid;gap:8px}
+.ring{width:74px;height:74px}
+.checks{display:grid;gap:6px}
+.checks label{display:flex;gap:10px;align-items:center;font-size:14px}
+.checks input{width:18px;height:18px;accent-color:var(--tertiary)}
+.fab{position:absolute;right:16px;bottom:16px;border:0;border-radius:16px;background:var(--primary);color:var(--on-primary);padding:14px 18px;font:700 14px var(--f-body);display:flex;gap:8px;align-items:center;box-shadow:var(--shadow)}
+.fab svg{width:18px;height:18px}
+.explain{max-width:340px;display:grid;gap:14px;padding-top:40px}
+.explain h2{font-size:26px}
+.explain ul{margin:0;padding-left:18px;display:grid;gap:8px;color:var(--on-surface-variant)}
+.explain li b{color:var(--on-surface)}
+
+/* modal + toast */
+dialog{border:0;border-radius:20px;padding:0;background:var(--surface-container);color:var(--on-surface);width:min(640px,calc(100vw - 32px));box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(5,15,22,.55)}
+.dlg{padding:20px;display:grid;gap:14px;max-height:80vh;overflow:auto}
+.dlg .sum{display:flex;gap:18px;flex-wrap:wrap}
+.dlg .sum b{font:600 26px var(--f-mono);display:block}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--on-surface);color:var(--surface);padding:12px 18px;border-radius:12px;font-weight:500;z-index:50;max-width:calc(100vw - 32px);box-shadow:var(--shadow)}
+
+@media (max-width:1180px){.ops{grid-template-columns:64px minmax(0,1fr)}.side{grid-column:2}}
+@media (max-width:760px){.ops{grid-template-columns:1fr}.rail{flex-direction:row;justify-content:center;grid-column:1}.side{grid-column:1}.flowbox span{display:none}.explain{padding-top:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="topbar gut" id="topbar">
+  <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3c5 7 9 11.5 9 16.5a9 9 0 0 1-18 0C7 14.5 11 10 16 3z" fill="currentColor"/><path d="M10 21c2 1.6 4 1.6 6 0s4-1.6 6 0" stroke="var(--surface-container)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>ElquiAlerta</div>
+  <div class="level" id="level"><span class="dot"></span><span id="level-t">Normal</span></div>
+  <div class="flowbox"><b id="flow">0</b><span>m³/s · estación río Elqui</span><span class="trend" id="trend"></span></div>
+  <span class="clock" id="clock"></span>
+  <span class="spacer"></span>
+  <div class="seg" role="group" aria-label="Vista por rol" id="roles">
+    <button data-role="op" aria-pressed="true">Centro de monitoreo</button>
+    <button data-role="bri" aria-pressed="false">Brigadista</button>
+    <button data-role="vec" aria-pressed="false">Vecino</button>
+  </div>
+  <button class="iconbtn" id="theme" aria-label="Cambiar tema claro u oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+</header>
+
+<!-- ═════════ OPERADOR ═════════ -->
+<main id="view-op" class="ops gut">
+  <nav class="rail" aria-label="Secciones">
+    <button aria-current="true" data-tab="blocks" aria-label="Manzanas expuestas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+    <button data-tab="reports" aria-label="Reportes ciudadanos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg><span class="badge" id="rep-badge" hidden>0</span></button>
+    <button data-tab="shelters" aria-label="Albergues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg></button>
+  </nav>
+
+  <section class="card mapcard" aria-label="Mapa del valle">
+    <div class="maptools">
+      <span class="label">Escenario</span>
+      <div class="chips" id="scen">
+        <button class="chip" data-s="auto" aria-pressed="true">Según caudal</button>
+        <button class="chip" data-s="10" aria-pressed="false">T = 10</button>
+        <button class="chip" data-s="50" aria-pressed="false">T = 50</button>
+        <button class="chip" data-s="100" aria-pressed="false">T = 100</button>
+      </div>
+      <span class="spacer"></span>
+      <div class="chips" id="layers">
+        <button class="chip" data-l="water" aria-pressed="true"><i style="background:var(--d2)"></i>Agua</button>
+        <button class="chip" data-l="blocks" aria-pressed="true"><i style="background:var(--on-surface)"></i>Manzanas</button>
+        <button class="chip" data-l="reports" aria-pressed="true"><i style="background:var(--lv-roja)"></i>Reportes</button>
+        <button class="chip" data-l="evac" aria-pressed="true"><i style="background:var(--tertiary)"></i>Evacuación</button>
+      </div>
+      <button class="btn btn-primary" id="open-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Emitir alerta</button>
+    </div>
+    <div class="mapwrap">
+      <svg id="map" viewBox="0 0 640 360" role="img" aria-label="Mapa esquemático del valle del Elqui con manzanas, agua y reportes"></svg>
+      <div class="notvalid">Escenario académico · no validado oficialmente</div>
+      <div class="maplegend" aria-hidden="true">
+        <span><i style="background:var(--d1)"></i>0–0,5 m</span>
+        <span><i style="background:var(--d2)"></i>0,5–1,5 m</span>
+        <span><i style="background:var(--d3)"></i>&gt; 1,5 m</span>
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="tlhead">
+        <button class="play" id="play" aria-label="Reproducir simulación de crecida"><svg viewBox="0 0 24 24" fill="currentColor" id="play-ic"><path d="M7 4v16l13-8z"/></svg></button>
+        <div><span class="label">Simulación de crecida · 48 h</span><div class="mono" id="tl-t" style="font-size:13px"></div></div>
+        <span class="spacer"></span>
+        <div class="seg" role="group" aria-label="Velocidad" id="speed">
+          <button data-v="1" aria-pressed="true">1×</button><button data-v="3" aria-pressed="false">3×</button><button data-v="8" aria-pressed="false">8×</button>
+        </div>
+      </div>
+      <div class="hydro"><svg id="hydro" viewBox="0 0 900 150" role="img" aria-label="Hidrograma de caudal con umbrales de alerta"></svg></div>
+      <input type="range" id="scrub" min="0" max="47.9" step="0.1" aria-label="Hora de la simulación">
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="kpis">
+      <div class="card kpi"><span class="label">Personas expuestas</span><b id="k-pop">0</b><small id="k-pop-s"></small></div>
+      <div class="card kpi"><span class="label">Manzanas con agua</span><b id="k-blk">0</b><small id="k-blk-s"></small></div>
+      <div class="card kpi wide">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="label">Confirmaciones de vecinos</span><span class="mono" id="k-ack-t" style="font-size:13px"></span></div>
+        <div class="stack" id="k-ack"><span style="background:var(--lv-prev)"></span><span style="background:var(--help)"></span><span style="background:var(--lv-ama)"></span></div>
+        <div class="acklegend" id="k-ack-l"></div>
+      </div>
+    </div>
+    <div class="card" id="panel">
+      <div class="tabs" role="tablist" id="tabs">
+        <button role="tab" data-tab="blocks" aria-selected="true">Manzanas</button>
+        <button role="tab" data-tab="reports" aria-selected="false">Reportes</button>
+        <button role="tab" data-tab="shelters" aria-selected="false">Albergues</button>
+      </div>
+      <div id="panel-body"></div>
+    </div>
+  </aside>
+</main>
+
+<!-- ═════════ BRIGADISTA ═════════ -->
+<main id="view-bri" class="mobile gut" hidden>
+  <div class="phone" aria-label="App del brigadista">
+    <div class="ph-top"><div><span class="label">Brigada · Sector sur</span><h3 style="font-size:17px">Casos activos</h3></div><span class="pill" id="bri-lvl" style="background:var(--lvc);color:#fff"></span></div>
+    <div class="ph-body">
+      <svg id="bri-map" viewBox="80 120 460 240" style="display:block;width:100%;height:100%;min-height:600px" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Mapa de casos"></svg>
+      <div class="sheet" id="bri-sheet"></div>
+    </div>
+    <nav class="ph-nav"><button aria-current="true"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>Mapa</button><button><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Casos</button><button><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span>Historial</button><button><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4"/></svg></span>Reportar</button></nav>
+  </div>
+  <div class="explain">
+    <span class="label">Vista de la brigada</span>
+    <h2>Primero las personas, después la infraestructura</h2>
+    <ul>
+      <li><b>Casos ordenados por prioridad:</b> vecinos que pidieron ayuda, personas aisladas y reportes críticos.</li>
+      <li><b>Trazar ruta</b> dibuja el camino desde la posición de la brigada.</li>
+      <li><b>Marcar atendido</b> cierra el caso y actualiza el centro de monitoreo al instante.</li>
+      <li>Avanza la simulación en el centro de monitoreo para que aparezcan casos nuevos.</li>
+    </ul>
+  </div>
+</main>
+
+<!-- ═════════ VECINO ═════════ -->
+<main id="view-vec" class="mobile gut" hidden>
+  <div class="phone" aria-label="App del vecino">
+    <div class="ph-top"><div><span class="label">Tu hogar</span><h3 style="font-size:17px">Villa El Arrayán · M-07</h3></div><button class="iconbtn" aria-label="Notificaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></button></div>
+    <div class="ph-body" id="vec-body"></div>
+    <nav class="ph-nav"><button aria-current="true"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11 12 4l9 7v9H3z"/></svg></span>Inicio</button><button><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg></span>Mi ruta</button><button><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>Preparación</button><button><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2 20h20L12 3z"/></svg></span>Reportes</button></nav>
+  </div>
+  <div class="explain">
+    <span class="label">Vista del vecino</span>
+    <h2>Un aviso que dice dónde, cuánto y qué hacer</h2>
+    <ul>
+      <li><b>Mi manzana:</b> nivel de alerta y profundidad estimada para su casa, no un caudal abstracto.</li>
+      <li><b>Estoy a salvo / Necesito ayuda:</b> la respuesta llega al centro de monitoreo y a la brigada.</li>
+      <li><b>Preparación familiar</b> reemplaza los puntos de EcoPoint: se premia estar preparado.</li>
+      <li><b>Reportar</b> agrega un incidente al mapa del centro de monitoreo.</li>
+    </ul>
+  </div>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlg-t">
+  <form method="dialog" class="dlg" id="dlg-form">
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px"><div><span class="label">Emitir alerta</span><h2 id="dlg-t" style="font-size:22px">Vista previa del envío</h2></div><button class="iconbtn" value="cancel" aria-label="Cerrar">✕</button></div>
+    <div><span class="label">Nivel</span><div class="chips" id="dlg-lv" style="margin-top:6px"></div></div>
+    <div><span class="label">Sectores</span><div class="chips" id="dlg-sec" style="margin-top:6px"></div></div>
+    <div class="sum" id="dlg-sum"></div>
+    <div id="dlg-msgs" style="display:grid;gap:8px"></div>
+    <p style="font-size:13px;color:var(--on-surface-variant)">Prototipo: el envío es simulado. En la API real esto llama a <span class="mono">POST /api/v1/alerts</span> y encola un mensaje por vecino.</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button class="btn btn-ghost" value="cancel">Cancelar</button><button class="btn btn-primary" id="dlg-ok" value="ok">Emitir alerta</button></div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a,p)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);if(p)p.appendChild(n);return n};
+const fmt=(v,d=1)=>v.toFixed(d).replace(".",",");
+const fmtInt=n=>Math.round(n).toLocaleString("es-CL");
+
+/* ── Valle esquemático (mismo modelo de la página de conceptos) ── */
+const C=32,R=18,CELL=20;
+const yc=x=>9+2.6*Math.sin(x/5.5)+1.0*Math.sin(x/2.3+1);
+const terr=[],chan=[];
+for(let y=0;y<R;y++){terr[y]=[];chan[y]=[];for(let x=0;x<C;x++){
+  const g=0.06*x,dy=(y+.5)-yc(x+.5),dist=Math.abs(dy);
+  let z=g+dist*(dy>0?0.42:0.62)+0.22*Math.sin(x*.9+y*.7)+0.18*Math.cos(x*.4-y*1.1);
+  if(dy<0)z-=1.1*Math.exp(-((x-21)**2)/3)*Math.max(0,1-dist/9);
+  chan[y][x]=dist<0.9;if(chan[y][x])z=g-1.2;terr[y][x]=z;
+}}
+const zmin=Math.min(...terr.flat()),zmax=Math.max(...terr.flat());
+const landFill=terr.map(r=>r.map(z=>`color-mix(in oklab, var(--land-hi) ${Math.round(100*(z-zmin)/(zmax-zmin))}%, var(--land-lo))`));
+const LEV={2:0.35,10:1.2,50:2.0,100:2.8};
+const depthAt=(lev,x,y)=>chan[y][x]?3:Math.max(0,0.06*x+lev-terr[y][x]);
+const wcol=d=>d<=0.05?null:d<0.5?"var(--d1)":d<1.5?"var(--d2)":"var(--d3)";
+
+/* sectores, manzanas, albergues */
+const SECTORS=["Villa El Arrayán","Marquesa","Nueva Talcuna","El Almendral","San Carlos","Huanta","Centro"];
+const BL=[["M-01",0,3,13],["M-02",0,6,14],["M-07",0,9,13],["M-11",1,13,12],["M-12",1,16,13],["M-15",2,20,14],["M-18",2,24,14],["M-21",3,27,11],["M-24",4,18,3],["M-26",4,22,4],["M-30",5,5,3],["M-33",6,11,2]];
+const BLOCKS=BL.map(([code,s,x,y],i)=>{const b={code,sector:SECTORS[s],x,y,w:2,h:2};
+  const dir=(y+1>yc(x+1))?1:-1;
+  const wet=()=>{for(let j=0;j<2;j++)for(let k=0;k<2;k++){const yy=b.y+j;if(yy<0||yy>=R||chan[yy][b.x+k]||Math.abs(yy+.5-yc(b.x+k+.5))<1.6)return true}return false};
+  let n=0;while(wet()&&n++<8)b.y+=dir;b.y=Math.max(0,Math.min(R-2,b.y));
+  b.south=(b.y+1)>yc(b.x+1);
+  b.households=10+(i*7)%9;b.population=b.households*3+(i%3);b.assist=1+(i%3);
+  b.cx=(b.x+1)*CELL;b.cy=(b.y+1)*CELL;return b});
+const blockMax=(b,lev)=>{let m=0;for(let j=0;j<b.h;j++)for(let i=0;i<b.w;i++){if(chan[b.y+j][b.x+i])continue;m=Math.max(m,depthAt(lev,b.x+i,b.y+j))}return m};
+const SHELTERS=[
+  {id:"s1",name:"Escuela Lucila Godoy Alcayaga",x:9,y:0.9,cap:180,side:"n"},
+  {id:"s2",name:"Sede junta de vecinos oriente",x:27,y:1.6,cap:80,side:"n"},
+  {id:"s3",name:"Sede junta de vecinos sur",x:14,y:17.2,cap:120,side:"s"}];
+const shelterFor=b=>{const opts=SHELTERS.filter(s=>(s.side==="s")===b.south);return opts.sort((a,c)=>Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(c.x-b.x,c.y-b.y))[0]};
+const routeLabel=b=>b.south?"sube hacia el sur, por la calle alta hacia la ladera":"sube hacia el norte, lejos del cauce";
+
+/* ── Hidrología (valores ilustrativos) ── */
+const TH={PREVENTIVA:110,AMARILLA:150,ROJA:190};
+const LEVELS=["NORMAL","PREVENTIVA","AMARILLA","ROJA"];
+const LV={NORMAL:{t:"Normal",c:"var(--lv-normal)",T:null},PREVENTIVA:{t:"Alerta Temprana Preventiva",c:"var(--lv-prev)",T:10},AMARILLA:{t:"Alerta Amarilla",c:"var(--lv-ama)",T:50},ROJA:{t:"Alerta Roja",c:"var(--lv-roja)",T:100}};
+const flow=t=>45+190*Math.exp(-(((t-31)/7)**2))+6*Math.sin(t*1.7)+3*Math.sin(t*4.1);
+const levelOf=f=>f>=TH.ROJA?"ROJA":f>=TH.AMARILLA?"AMARILLA":f>=TH.PREVENTIVA?"PREVENTIVA":"NORMAL";
+const levFromFlow=f=>{const P=[[40,0.15],[110,1.2],[150,2.0],[190,2.8],[240,3.1]];if(f<=P[0][0])return P[0][1];for(let i=0;i<P.length-1;i++){const[a,la]=P[i],[b,lb]=P[i+1];if(f<=b)return la+(lb-la)*(f-a)/(b-a)}return 3.1};
+// cruces automáticos (igual que hydro-threshold.worker: solo sube)
+const AUTO=[];{let cur=0;for(let t=0;t<48;t+=0.1){const k=LEVELS.indexOf(levelOf(flow(t)));if(k>cur){AUTO.push({t:+t.toFixed(1),type:"issue",level:LEVELS[k],trigger:"AUTO",sectors:null});cur=k}}}
+const clockLabel=t=>{const h=10+t,d=1+Math.floor(h/24),hh=Math.floor(h%24),mm=Math.floor((h%1)*60);return`Día ${d} · ${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`};
+
+/* ── Reportes programados + creados ── */
+const REPORTS=[
+  {id:"r1",t:21.5,type:"Microbasural en el cauce",x:12,y:7.6,status:"PENDING",prio:"MEDIUM",by:"Vecino"},
+  {id:"r2",t:25.0,type:"Quebrada activa (Leiva)",x:21,y:3.8,status:"PENDING",prio:"HIGH",by:"Vecino"},
+  {id:"r3",t:27.4,type:"Gavión dañado",x:7.5,y:10.8,status:"PENDING",prio:"MEDIUM",by:"Brigadista"},
+  {id:"r4",t:29.2,type:"Ruta 41-CH cortada",x:21.5,y:3.3,status:"PENDING",prio:"HIGH",by:"Brigadista"},
+  {id:"r5",t:30.6,type:"Vivienda anegada",x:10,y:14,status:"PENDING",prio:"HIGH",by:"Vecino"},
+  {id:"r6",t:32.0,type:"Persona aislada",x:14,y:13,status:"PENDING",prio:"CRITICAL",by:"Vecino"},
+  {id:"r7",t:33.1,type:"Vivienda anegada",x:4,y:14,status:"PENDING",prio:"HIGH",by:"Vecino"}];
+const ST_LABEL={PENDING:"Pendiente",VERIFYING:"Verificando",ATTENDED:"Atendido",ESCALATED:"Escalado"};
+const NEXT={PENDING:"VERIFYING",VERIFYING:"ATTENDED",ATTENDED:"ATTENDED",ESCALATED:"ATTENDED"};
+
+/* ── Estado ── */
+const S={t:26.5,playing:false,speed:1,scen:"auto",layers:{water:true,blocks:true,reports:true,evac:true},sel:null,tab:"blocks",role:"op",
+  ops:[],resAck:null,checklist:{kit:true,ruta:true,docs:false,simulacro:false,contacto:true},attended:new Set(),route:null,lastLevel:null};
+
+function alertAt(t){
+  const evs=[...AUTO,...S.ops].filter(e=>e.t<=t).sort((a,b)=>a.t-b.t);let a=null;
+  for(const e of evs){if(e.type==="close"){a=null;continue}
+    if(!a||LEVELS.indexOf(e.level)>LEVELS.indexOf(a.level)||e.trigger==="OPERATOR")a={...e}}
+  return a;
+}
+const lev=()=>S.scen==="auto"?levFromFlow(flow(S.t)):LEV[+S.scen];
+function recipients(level,sectors){const T=LV[level].T;if(!T)return[];return BLOCKS.filter(b=>blockMax(b,LEV[T])>0.05&&(!sectors||sectors.includes(b.sector)))}
+function acks(a){
+  if(!a)return{total:0,safe:0,help:0,pend:0};
+  const bl=recipients(a.level,a.sectors),total=bl.reduce((s,b)=>s+b.households,0),age=Math.max(0,S.t-a.t);
+  const f=1-Math.exp(-age/1.3);let safe=Math.round(total*0.7*f),help=Math.round(total*0.07*f);
+  if(S.resAck==="SAFE")safe++;if(S.resAck==="HELP")help++;
+  safe=Math.min(safe,total);help=Math.min(help,total-safe);
+  return{total,safe,help,pend:total-safe-help};
+}
+function buildMessage(level,b,depth){
+  const sh=shelterFor(b);
+  return`${LV[level].t} — río Elqui. ${b.sector}, manzana ${b.code}: agua estimada hasta ${fmt(depth)} m. Evacúa: ${routeLabel(b)}. Albergue: ${sh.name}. Responde: 1 = Estoy a salvo · 2 = Necesito ayuda.`;
+}
+function visibleReports(){return REPORTS.filter(r=>r.t<=S.t)}
+function cases(){
+  const a=alertAt(S.t),out=[];
+  if(a&&LEVELS.indexOf(a.level)>=2&&S.t-a.t>0.3){
+    BLOCKS.filter(b=>blockMax(b,LEV[LV[a.level].T])>1).slice(0,3).forEach((b,i)=>out.push({id:"h-"+b.code,kind:"help",title:`Pidió ayuda · ${b.code}`,sub:`${b.sector} · ${2+i} personas · movilidad reducida`,x:b.x+1,y:b.y+1,since:S.t-a.t-0.3*i}));
+  }
+  if(S.resAck==="HELP"){const b=BLOCKS[2];out.unshift({id:"h-me",kind:"help",title:"Pidió ayuda · M-07",sub:"Villa El Arrayán · respuesta desde la app",x:b.x+1,y:b.y+1,since:0})}
+  visibleReports().filter(r=>(r.prio==="CRITICAL"||r.prio==="HIGH")&&r.status!=="ATTENDED").forEach(r=>out.push({id:r.id,kind:"report",title:r.type,sub:`Reporte de ${r.by.toLowerCase()} · prioridad ${r.prio==="CRITICAL"?"crítica":"alta"}`,x:r.x,y:r.y,since:S.t-r.t,rep:r}));
+  const rank=c=>c.kind==="help"?0:c.rep&&c.rep.prio==="CRITICAL"?1:2;
+  return out.filter(c=>!S.attended.has(c.id)).sort((a,b)=>rank(a)-rank(b));
+}
+
+/* ── Mapa (constructor reutilizable) ── */
+function makeMap(svg,opt){
+  const cells=[],gC=el("g",{},svg);
+  for(let y=0;y<R;y++){cells[y]=[];for(let x=0;x<C;x++)cells[y][x]=el("rect",{x:x*CELL,y:y*CELL,width:CELL+.5,height:CELL+.5},gC)}
+  // Ruta 41-CH + puente
+  let p="";for(let x=0;x<=C;x++)p+=(x?" L":"M")+x*CELL+" "+(3.2+0.6*Math.sin(x/4))*CELL;
+  el("path",{d:p,fill:"none",stroke:"var(--road)","stroke-width":4,"stroke-linecap":"round",opacity:.85},svg);
+  el("line",{x1:250,y1:(3.2+0.6*Math.sin(12.5/4))*CELL,x2:250,y2:300,stroke:"var(--road)","stroke-width":4,opacity:.85},svg);
+  const lbl=el("text",{x:8,y:52,"font-size":11,fill:"var(--on-surface)","font-family":"IBM Plex Mono, monospace","font-weight":600},svg);lbl.textContent="Ruta 41-CH";
+  const gEvac=el("g",{},svg),gBlk=el("g",{},svg),gSh=el("g",{},svg),gPins=el("g",{},svg),gTop=el("g",{},svg);
+  // estación
+  const st=el("g",{transform:`translate(${C*CELL-26},${yc(31)*CELL-30})`},svg);
+  el("rect",{x:-8,y:-8,width:16,height:16,rx:4,fill:"var(--primary)"},st);el("path",{d:"M-4 3 L0 -4 L4 3",stroke:"var(--on-primary)","stroke-width":2,fill:"none"},st);
+  const stl=el("text",{x:-12,y:-12,"text-anchor":"end","font-size":10,fill:"var(--on-surface)","font-family":"IBM Plex Mono, monospace"},st);stl.textContent="Estación DGA";
+  const fl=el("text",{x:8,y:C*0+352,"font-size":10,fill:"var(--on-surface-variant)","font-family":"IBM Plex Mono, monospace"},svg);fl.textContent="← sentido del flujo · esquema, no a escala";
+  const blkEls=BLOCKS.map(b=>{const g=el("g",{class:opt.click?"blk":"",tabindex:opt.click?0:-1,role:opt.click?"button":"img","aria-label":`Manzana ${b.code}, ${b.sector}`},gBlk);
+    const r=el("rect",{x:b.x*CELL+1,y:b.y*CELL+1,width:b.w*CELL-2,height:b.h*CELL-2,rx:3},g);
+    const t=el("text",{x:b.cx,y:b.cy+4,"text-anchor":"middle","font-size":10,"font-family":"IBM Plex Mono, monospace","font-weight":600,fill:"var(--on-surface)"},g);t.textContent=b.code;
+    if(opt.click){g.addEventListener("click",()=>opt.click(b));g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();opt.click(b)}})}
+    return{b,r}});
+  SHELTERS.forEach(s=>{const g=el("g",{transform:`translate(${s.x*CELL},${s.y*CELL})`},gSh);
+    el("rect",{x:-9,y:-9,width:18,height:18,rx:5,fill:"var(--tertiary)",stroke:"var(--surface-container)","stroke-width":2},g);
+    el("path",{d:"M-5 1 L0 -4 L5 1 M-3.5 0 V5 H3.5 V0",stroke:"#fff","stroke-width":1.6,fill:"none"},g);
+    if(opt.labels!==false){const t=el("text",{x:13,y:4,"font-size":10,"font-family":"Work Sans, sans-serif","font-weight":600,fill:"var(--on-surface)"},g);t.textContent=s.name.replace("Sede junta de vecinos","JJVV")}});
+  function update(level,o){
+    for(let y=0;y<R;y++)for(let x=0;x<C;x++){let f=landFill[y][x];if(chan[y][x])f="var(--river)";else if(o.water){const w=wcol(depthAt(level,x,y));if(w)f=w}cells[y][x].setAttribute("fill",f)}
+    blkEls.forEach(({b,r})=>{const d=blockMax(b,level),sel=o.sel===b.code;
+      r.parentNode.style.display=o.blocks?"":"none";
+      r.setAttribute("fill",d>1.5?"var(--lv-roja)":d>0.05?"var(--lv-ama)":"var(--surface-container)");
+      r.setAttribute("fill-opacity",d>0.05?0.55:0.75);
+      r.setAttribute("stroke",sel?"var(--primary)":"var(--on-surface)");r.setAttribute("stroke-width",sel?4:1.4)});
+    gEvac.innerHTML="";
+    if(o.evac){BLOCKS.filter(b=>blockMax(b,level)>0.05).forEach(b=>{const s=shelterFor(b);
+      el("path",{d:`M${b.cx} ${b.cy} Q ${(b.cx+s.x*CELL)/2} ${b.south?b.cy+20:b.cy-30} ${s.x*CELL} ${s.y*CELL}`,fill:"none",stroke:"var(--tertiary)","stroke-width":2.2,"stroke-dasharray":"5 4",opacity:.9},gEvac)})}
+    gPins.innerHTML="";
+    (o.pins||[]).forEach(pn=>{const g=el("g",{class:"pin",transform:`translate(${pn.x*CELL},${pn.y*CELL})`},gPins);
+      el("path",{d:"M0 0 C-7 -9 -10 -13 -10 -18 A10 10 0 1 1 10 -18 C10 -13 7 -9 0 0Z",fill:pn.color,stroke:"var(--surface-container)","stroke-width":2},g);
+      const t=el("text",{x:0,y:-14,"text-anchor":"middle","font-size":11,"font-weight":700,fill:"#fff","font-family":"Work Sans, sans-serif"},g);t.textContent=pn.glyph;
+      if(pn.title){const ti=el("title",{},g);ti.textContent=pn.title}});
+    gTop.innerHTML="";
+    if(o.route){const[a,b]=o.route;el("path",{d:`M${a[0]*CELL} ${a[1]*CELL} Q ${(a[0]+b[0])/2*CELL+40} ${(a[1]+b[1])/2*CELL} ${b[0]*CELL} ${b[1]*CELL}`,fill:"none",stroke:"var(--primary)","stroke-width":4,"stroke-dasharray":"8 6","stroke-linecap":"round"},gTop);
+      const me=el("g",{transform:`translate(${a[0]*CELL},${a[1]*CELL})`},gTop);el("circle",{r:9,fill:"var(--primary)",stroke:"#fff","stroke-width":3},me)}
+    if(o.me){const g=el("g",{transform:`translate(${o.me[0]*CELL},${o.me[1]*CELL})`},gTop);el("circle",{r:13,fill:"var(--primary)",opacity:.25},g);el("circle",{r:7,fill:"var(--primary)",stroke:"#fff","stroke-width":2.5},g)}
+  }
+  return{update};
+}
+
+/* ── Hidrograma ── */
+const H=$("#hydro"),HX=t=>40+t*(850/48),HY=f=>135-f*(120/260);
+function drawHydroStatic(){
+  H.innerHTML="";
+  [["PREVENTIVA","var(--lv-prev)"],["AMARILLA","var(--lv-ama)"],["ROJA","var(--lv-roja)"]].forEach(([k,c])=>{
+    el("line",{x1:40,x2:890,y1:HY(TH[k]),y2:HY(TH[k]),stroke:c,"stroke-width":1.5,"stroke-dasharray":"4 4"},H);
+    const t=el("text",{x:44,y:HY(TH[k])-4,"font-size":10,fill:c,"font-family":"IBM Plex Mono, monospace","font-weight":600},H);t.textContent=`${LV[k].t.replace("Alerta Temprana ","")} ${TH[k]}`});
+  for(let f=0;f<=250;f+=50){const t=el("text",{x:34,y:HY(f)+3,"text-anchor":"end","font-size":10,fill:"var(--on-surface-variant)","font-family":"IBM Plex Mono, monospace"},H);t.textContent=f}
+  for(let h=0;h<=48;h+=6){el("line",{x1:HX(h),x2:HX(h),y1:135,y2:139,stroke:"var(--outline-variant)"},H);const t=el("text",{x:HX(h),y:149,"text-anchor":"middle","font-size":10,fill:"var(--on-surface-variant)","font-family":"IBM Plex Mono, monospace"},H);t.textContent=h+" h"}
+  el("line",{x1:40,x2:890,y1:135,y2:135,stroke:"var(--outline-variant)"},H);
+  let d="";for(let t=0;t<=48;t+=0.25)d+=(t?" L":"M")+HX(t).toFixed(1)+" "+HY(flow(t)).toFixed(1);
+  el("path",{d,fill:"none",stroke:"var(--on-surface-variant)","stroke-width":1.5,"stroke-dasharray":"3 4",opacity:.7},H);
+  H.obs=el("path",{fill:"color-mix(in oklab, var(--primary) 18%, transparent)",stroke:"var(--primary)","stroke-width":2.5},H);
+  H.now=el("line",{y1:8,y2:135,stroke:"var(--on-surface)","stroke-width":1.5},H);
+  H.dot=el("circle",{r:5,fill:"var(--primary)",stroke:"var(--surface-container)","stroke-width":2},H);
+  H.marks=el("g",{},H);
+  const lab=el("text",{x:890,y:14,"text-anchor":"end","font-size":10,fill:"var(--on-surface-variant)","font-family":"IBM Plex Mono, monospace"},H);lab.textContent="m³/s · línea punteada = pronóstico";
+  H.addEventListener("click",e=>{const r=H.getBoundingClientRect(),x=(e.clientX-r.left)*900/r.width;setT((x-40)*48/850)});
+}
+function drawHydro(){
+  let d=`M40 135`;for(let t=0;t<=S.t;t+=0.25)d+=` L${HX(t).toFixed(1)} ${HY(flow(t)).toFixed(1)}`;d+=` L${HX(S.t)} ${HY(flow(S.t))} L${HX(S.t)} 135 Z`;
+  H.obs.setAttribute("d",d);H.now.setAttribute("x1",HX(S.t));H.now.setAttribute("x2",HX(S.t));
+  H.dot.setAttribute("cx",HX(S.t));H.dot.setAttribute("cy",HY(flow(S.t)));
+  H.marks.innerHTML="";[...AUTO,...S.ops].filter(e=>e.t<=S.t).forEach(e=>{const c=e.type==="close"?"var(--lv-normal)":LV[e.level].c;
+    el("circle",{cx:HX(e.t),cy:12,r:5,fill:c,stroke:"var(--surface-container)","stroke-width":1.5},H.marks)});
+}
+
+/* ── Render ── */
+const opMap=makeMap($("#map"),{click:b=>{S.sel=S.sel===b.code?null:b.code;S.tab="blocks";render()}});
+const briMap=makeMap($("#bri-map"),{labels:false});
+function render(){
+  const a=alertAt(S.t),level=a?a.level:"NORMAL",f=flow(S.t),L=lev();
+  document.documentElement.style.setProperty("--lvc",LV[level].c);
+  $("#level-t").textContent=LV[level].t;$("#level").classList.toggle("live",level!=="NORMAL");
+  $("#flow").textContent=Math.round(f);const tr=flow(S.t)-flow(Math.max(0,S.t-1));
+  $("#trend").textContent=tr>2?"▲ subiendo":tr<-2?"▼ bajando":"● estable";$("#trend").style.color=tr>2?"var(--lv-roja)":tr<-2?"var(--lv-prev)":"var(--on-surface-variant)";
+  $("#clock").textContent=clockLabel(S.t);$("#tl-t").textContent=`${clockLabel(S.t)} · hora ${fmt(S.t)} de 48`;
+  $("#scrub").value=S.t;
+  if(S.lastLevel&&S.lastLevel!==level&&a&&a.trigger==="AUTO"&&Math.abs(a.t-S.t)<0.6)toast(`${LV[level].t} automática: el caudal superó ${TH[level]} m³/s`);
+  S.lastLevel=level;
+  // KPIs
+  const wet=BLOCKS.map(b=>({b,d:blockMax(b,L)})).filter(o=>o.d>0.05).sort((p,q)=>q.d-p.d);
+  $("#k-pop").textContent=fmtInt(wet.reduce((s,o)=>s+o.b.population,0));
+  $("#k-pop-s").textContent=`${wet.reduce((s,o)=>s+o.b.assist,0)} con movilidad reducida`;
+  $("#k-blk").textContent=`${wet.length}/${BLOCKS.length}`;
+  $("#k-blk-s").textContent=`${wet.filter(o=>o.d>1.5).length} sobre 1,5 m de agua`;
+  const k=acks(a),tot=Math.max(1,k.total);
+  const sp=$$("#k-ack span");sp[0].style.width=100*k.safe/tot+"%";sp[1].style.width=100*k.help/tot+"%";sp[2].style.width=(k.total?100*k.pend/tot:0)+"%";
+  $("#k-ack-t").textContent=a?`${k.safe+k.help}/${k.total} hogares`:"sin alerta activa";
+  $("#k-ack-l").innerHTML=`<span><i style="background:var(--lv-prev)"></i>A salvo ${k.safe}</span><span><i style="background:var(--help)"></i>Piden ayuda ${k.help}</span><span><i style="background:var(--lv-ama)"></i>Sin respuesta ${k.pend}</span>`;
+  const reps=visibleReports(),pend=reps.filter(r=>r.status==="PENDING").length;
+  $("#rep-badge").hidden=!pend;$("#rep-badge").textContent=pend;
+  // mapa operador
+  const pins=S.layers.reports?reps.map(r=>({x:r.x,y:r.y,color:r.status==="ATTENDED"?"var(--lv-prev)":r.prio==="CRITICAL"?"var(--help)":"var(--lv-roja)",glyph:r.status==="ATTENDED"?"✓":"!",title:`${r.type} · ${ST_LABEL[r.status]}`})):[];
+  if(S.layers.reports)cases().filter(c=>c.kind==="help").forEach(c=>pins.push({x:c.x,y:c.y-0.6,color:"var(--help)",glyph:"?",title:c.title}));
+  opMap.update(L,{water:S.layers.water,blocks:S.layers.blocks,evac:S.layers.evac,sel:S.sel,pins});
+  drawHydro();renderPanel(a,L,wet,reps);
+  if(S.role==="bri")renderBri(a,L);if(S.role==="vec")renderVec(a,L);
+}
+function renderPanel(a,L,wet,reps){
+  $$("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab));
+  $$(".rail button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===S.tab));
+  const body=$("#panel-body");
+  if(S.tab==="blocks"&&S.sel){
+    const b=BLOCKS.find(x=>x.code===S.sel),d=blockMax(b,L),sh=shelterFor(b),lvl=a?a.level:"AMARILLA";
+    body.innerHTML=`<div class="detail"><div class="hd"><div><span class="label">${b.sector}</span><h3 style="font-size:20px">Manzana ${b.code}</h3></div><button class="iconbtn" id="d-close" aria-label="Volver a la lista">✕</button></div>
+      <div class="dgrid"><div><b>${fmt(d)} m</b><small>agua estimada</small></div><div><b>${b.population}</b><small>personas · ${b.households} hogares</small></div><div><b>${b.assist}</b><small>con movilidad reducida</small></div><div><b>${sh.cap}</b><small>cupos en su albergue</small></div></div>
+      <div><span class="label">Ruta y albergue</span><p style="margin-top:4px">${routeLabel(b)[0].toUpperCase()+routeLabel(b).slice(1)} → <b>${sh.name}</b></p></div>
+      <div><span class="label">Mensaje que recibiría cada hogar</span><p class="msgprev" style="margin-top:6px">${buildMessage(lvl==="NORMAL"?"PREVENTIVA":lvl,b,d)}</p></div>
+      <button class="btn btn-primary" id="d-alert" ${d<=0.05?"disabled style='opacity:.5'":""}>Alertar solo esta manzana</button></div>`;
+    $("#d-close").onclick=()=>{S.sel=null;render()};
+    $("#d-alert").onclick=()=>openAlert([b.sector]);
+    return;
+  }
+  if(S.tab==="blocks"){
+    body.innerHTML=wet.length?`<div class="list">${wet.map(({b,d})=>`<button class="row" data-b="${b.code}" aria-pressed="${S.sel===b.code}"><span class="sq" style="background:${d>1.5?"var(--lv-roja)":"var(--lv-ama)"}">${b.code.slice(2)}</span><span><span class="t">${b.code} · ${b.sector}</span><br><span class="s">${b.population} personas · ${b.assist} con movilidad reducida</span></span><span style="text-align:right"><span class="mono" style="font-weight:600">${fmt(d)} m</span><span class="bar" style="display:block;margin-top:4px"><span style="width:${Math.min(100,d/2.2*100)}%"></span></span></span></button>`).join("")}</div>`
+      :`<p class="empty">Ninguna manzana con agua en este momento.<br>Presiona ▶ para simular la crecida o elige T = 100.</p>`;
+    $$("#panel-body .row").forEach(r=>r.onclick=()=>{S.sel=r.dataset.b;render()});
+  }else if(S.tab==="reports"){
+    const list=[...reps].sort((p,q)=>(p.status==="ATTENDED")-(q.status==="ATTENDED")||q.t-p.t);
+    body.innerHTML=list.length?`<div class="list">${list.map(r=>`<div class="row"><span class="sq" style="background:${r.prio==="CRITICAL"?"var(--help)":r.prio==="HIGH"?"var(--lv-roja)":"var(--lv-ama)"}">!</span><span><span class="t">${r.type}</span><br><span class="s">${r.by} · hace ${fmt(Math.max(0,S.t-r.t))} h · prioridad ${({CRITICAL:"crítica",HIGH:"alta",MEDIUM:"media"})[r.prio]}</span></span><span style="display:grid;gap:4px;justify-items:end"><span class="pill p-${r.status}">${ST_LABEL[r.status]}</span>${r.status!=="ATTENDED"?`<button class="chip" data-r="${r.id}" style="padding:3px 9px;font-size:12px">${r.status==="PENDING"?"Verificar":"Atendido"}</button>`:""}</span></div>`).join("")}</div>`
+      :`<p class="empty">Aún no hay reportes. Aparecen a medida que avanza la crecida o cuando un vecino reporta desde su app.</p>`;
+    $$("#panel-body [data-r]").forEach(bt=>bt.onclick=()=>{const r=REPORTS.find(x=>x.id===bt.dataset.r);r.status=NEXT[r.status];if(r.status==="ATTENDED")S.attended.add(r.id);toast(`Reporte "${r.type}": ${ST_LABEL[r.status].toLowerCase()}`);render()});
+  }else{
+    const k=acks(a);
+    body.innerHTML=`<div class="list">${SHELTERS.map((s,i)=>{const occ=a?Math.min(s.cap,Math.round(k.safe*[0.35,0.15,0.3][i])):0,p=occ/s.cap;
+      return`<div class="row"><span class="sq" style="background:var(--tertiary)">${["N","O","S"][i]}</span><span><span class="t">${s.name}</span><br><span class="s">${a?"Habilitado":"Sin habilitar"} · ${occ}/${s.cap} personas</span><span class="bar" style="display:block;width:100%;margin-top:6px"><span style="width:${p*100}%;background:${p>0.85?"var(--lv-roja)":"var(--tertiary)"}"></span></span></span><span class="mono">${Math.round(p*100)}%</span></div>`}).join("")}</div>`;
+  }
+}
+
+/* ── Brigadista ── */
+function renderBri(a,L){
+  const cs=cases();$("#bri-lvl").textContent=a?LV[a.level].t:"Normal";
+  const pins=cs.map(c=>({x:c.x,y:c.y,color:c.kind==="help"?"var(--help)":"var(--lv-roja)",glyph:c.kind==="help"?"?":"!",title:c.title}));
+  const me=[14,16.4];
+  briMap.update(L,{water:true,blocks:true,evac:false,pins,route:S.route&&cs.find(c=>c.id===S.route)?[me,[cs.find(c=>c.id===S.route).x,cs.find(c=>c.id===S.route).y]]:null,me:S.route?null:me});
+  const c=cs[0],sheet=$("#bri-sheet");
+  if(!c){sheet.innerHTML=`<div class="grab"></div><span class="label">Sin casos pendientes</span><p style="color:var(--on-surface-variant)">${a?"Todo atendido por ahora.":"No hay alerta activa. Avanza la simulación en el centro de monitoreo."}</p>`;return}
+  const dist=Math.hypot(c.x-me[0],c.y-me[1])*0.12;
+  sheet.innerHTML=`<div class="grab"></div>
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div><span class="label" style="color:${c.kind==="help"?"var(--help)":"var(--lv-roja)"}">${c.kind==="help"?"Persona pide ayuda":"Reporte prioritario"}</span><h3 style="font-size:19px;margin-top:2px">${c.title}</h3><p style="font-size:13px;color:var(--on-surface-variant)">${c.sub}</p></div><span class="pill" style="background:var(--primary-soft);color:var(--primary)">${fmt(dist)} km</span></div>
+    <p class="mono" style="font-size:12.5px;color:var(--on-surface-variant)">Activo hace ${Math.max(1,Math.round(c.since*60))} min · ${cs.length-1} caso${cs.length-1===1?"":"s"} más en cola</p>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px"><button class="btn btn-primary" id="b-route">${S.route===c.id?"Ruta trazada ✓":"Trazar ruta"}</button><button class="btn btn-ghost" id="b-done">Marcar atendido</button></div>`;
+  $("#b-route").onclick=()=>{S.route=c.id;render()};
+  $("#b-done").onclick=()=>{S.attended.add(c.id);if(c.rep){c.rep.status="ATTENDED"}S.route=null;toast(`Caso atendido: ${c.title}`);render()};
+}
+
+/* ── Vecino ── */
+function renderVec(a,L){
+  const b=BLOCKS[2],level=a?a.level:"NORMAL",T=LV[level].T,d=T?blockMax(b,LEV[T]):blockMax(b,L),sh=shelterFor(b);
+  const score=Math.round(100*Object.values(S.checklist).filter(Boolean).length/5);
+  const C2=2*Math.PI*30;
+  $("#vec-body").innerHTML=`
+    <div class="status-card"><span class="label" style="color:rgba(255,255,255,.85)">${a?"Aviso del centro de monitoreo":"Estado del río"}</span>
+      <div class="big">${LV[level].t}</div>
+      <p>${a?`En tu manzana el agua podría llegar a <b>${fmt(d)} m</b>. Prepárate para salir hacia tu albergue.`:`Sin alertas. Caudal actual ${Math.round(flow(S.t))} m³/s.`}</p>
+      ${a?`<div class="btns"><button id="v-safe" aria-pressed="${S.resAck==="SAFE"}">Estoy a salvo</button><button class="help" id="v-help" aria-pressed="${S.resAck==="HELP"}">Necesito ayuda</button></div>`:""}
+      ${S.resAck?`<p style="font-size:13px">✓ Respuesta enviada: ${S.resAck==="SAFE"?"a salvo":"pediste ayuda, una brigada va en camino"}.</p>`:""}
+    </div>
+    <div class="card mcard"><span class="label">Tu ruta de evacuación</span>
+      <p><b>${routeLabel(b)[0].toUpperCase()+routeLabel(b).slice(1)}</b></p>
+      <p style="font-size:14px;color:var(--on-surface-variant)">Albergue: <b style="color:var(--on-surface)">${sh.name}</b> · ${a?Math.max(0,sh.cap-Math.round(acks(a).safe*0.3)):sh.cap} cupos libres</p>
+    </div>
+    <div class="card mcard" style="grid-template-columns:auto 1fr;align-items:center;gap:14px">
+      <svg class="ring" viewBox="0 0 74 74" aria-label="Preparación familiar ${score}%"><circle cx="37" cy="37" r="30" fill="none" stroke="var(--outline-variant)" stroke-width="8"/><circle cx="37" cy="37" r="30" fill="none" stroke="var(--tertiary)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C2*score/100} ${C2}" transform="rotate(-90 37 37)"/><text x="37" y="42" text-anchor="middle" font-size="15" font-weight="700" fill="var(--on-surface)" font-family="IBM Plex Mono, monospace">${score}%</text></svg>
+      <div><span class="label">Preparación familiar</span><p style="font-size:13.5px;color:var(--on-surface-variant)">Tu sector va en 64 %. Completa tu lista para subir.</p></div>
+      <div class="checks" style="grid-column:1/-1">${[["kit","Kit de emergencia listo"],["ruta","Conozco mi ruta y albergue"],["docs","Documentos en bolsa impermeable"],["simulacro","Participé en el simulacro"],["contacto","Contacto de emergencia registrado"]].map(([k,t])=>`<label><input type="checkbox" data-c="${k}" ${S.checklist[k]?"checked":""}> ${t}</label>`).join("")}</div>
+    </div>
+    <div id="v-report" class="card mcard" hidden><span class="label">Reportar un incidente</span><div class="chips" id="v-types">${["Desborde del río","Quebrada activa","Camino cortado","Vivienda anegada","Gavión dañado"].map(t=>`<button class="chip" data-t="${t}" aria-pressed="false">${t}</button>`).join("")}</div><button class="btn btn-primary" id="v-send" disabled style="opacity:.5">Enviar con mi ubicación</button></div>
+    <div style="height:80px"></div>
+    <button class="fab" id="v-fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Reportar</button>`;
+  if(a){$("#v-safe").onclick=()=>{S.resAck="SAFE";toast("Respuesta enviada al centro de monitoreo: a salvo");render()};
+    $("#v-help").onclick=()=>{S.resAck="HELP";toast("Pedido de ayuda enviado a la brigada del sector sur");render()}}
+  $$("#vec-body [data-c]").forEach(i=>i.onchange=()=>{S.checklist[i.dataset.c]=i.checked;render()});
+  let chosen=null;
+  $("#v-fab").onclick=()=>{$("#v-report").hidden=false;$("#v-report").scrollIntoView({behavior:"smooth",block:"center"})};
+  $$("#v-types .chip").forEach(c=>c.onclick=()=>{chosen=c.dataset.t;$$("#v-types .chip").forEach(x=>x.setAttribute("aria-pressed",x===c));$("#v-send").disabled=false;$("#v-send").style.opacity=1});
+  $("#v-send").onclick=()=>{if(!chosen)return;REPORTS.push({id:"u"+Date.now(),t:S.t,type:chosen,x:b.x+1.6,y:b.y+0.4,status:"PENDING",prio:chosen==="Vivienda anegada"||chosen==="Desborde del río"?"HIGH":"MEDIUM",by:"Vecino"});toast(`Reporte enviado: ${chosen}. Ya aparece en el centro de monitoreo.`);render()};
+}
+
+/* ── Emisor de alertas ── */
+let dlgState=null;
+function openAlert(sectors){
+  const a=alertAt(S.t),sug=a?a.level:LEVELS[Math.max(1,LEVELS.indexOf(levelOf(flow(S.t))))];
+  dlgState={level:sug,sectors:sectors||null};paintDlg();$("#dlg").showModal();
+}
+function paintDlg(){
+  const st=dlgState,affected=[...new Set(recipients(st.level,null).map(b=>b.sector))];
+  $("#dlg-lv").innerHTML=["PREVENTIVA","AMARILLA","ROJA"].map(l=>`<button type="button" class="chip" data-l="${l}" aria-pressed="${st.level===l}"><i style="background:${LV[l].c}"></i>${LV[l].t} · T=${LV[l].T}</button>`).join("");
+  $("#dlg-sec").innerHTML=`<button type="button" class="chip" data-s="" aria-pressed="${!st.sectors}">Todos los expuestos</button>`+affected.map(s=>`<button type="button" class="chip" data-s="${s}" aria-pressed="${!!(st.sectors&&st.sectors.includes(s))}">${s}</button>`).join("");
+  const bl=recipients(st.level,st.sectors),hh=bl.reduce((s,b)=>s+b.households,0),pp=bl.reduce((s,b)=>s+b.population,0);
+  $("#dlg-sum").innerHTML=`<div><b>${hh}</b><span class="label">hogares</span></div><div><b>${pp}</b><span class="label">personas</span></div><div><b>${bl.length}</b><span class="label">manzanas</span></div>`;
+  $("#dlg-msgs").innerHTML=bl.length?`<span class="label">Mensajes personalizados (${Math.min(3,bl.length)} de ${bl.length})</span>`+bl.sort((p,q)=>blockMax(q,LEV[LV[st.level].T])-blockMax(p,LEV[LV[st.level].T])).slice(0,3).map(b=>`<p class="msgprev" style="border-left-color:${LV[st.level].c}">${buildMessage(st.level,b,blockMax(b,LEV[LV[st.level].T]))}</p>`).join(""):`<p class="empty">No hay manzanas expuestas con este filtro.</p>`;
+  $("#dlg-ok").disabled=!bl.length;
+  $$("#dlg-lv .chip").forEach(c=>c.onclick=()=>{st.level=c.dataset.l;st.sectors=null;paintDlg()});
+  $$("#dlg-sec .chip").forEach(c=>c.onclick=()=>{const s=c.dataset.s;if(!s)st.sectors=null;else{st.sectors=st.sectors||[];st.sectors=st.sectors.includes(s)?st.sectors.filter(x=>x!==s):[...st.sectors,s];if(!st.sectors.length)st.sectors=null}paintDlg()});
+}
+$("#dlg").addEventListener("close",()=>{if($("#dlg").returnValue!=="ok"||!dlgState)return;
+  const st=dlgState,bl=recipients(st.level,st.sectors);
+  S.ops.push({t:S.t,type:"issue",level:st.level,trigger:"OPERATOR",sectors:st.sectors});
+  toast(`${LV[st.level].t} emitida a ${bl.reduce((s,b)=>s+b.households,0)} hogares (simulado)`);S.lastLevel=st.level;render()});
+$("#dlg-form").addEventListener("submit",e=>{const v=e.submitter&&e.submitter.value;e.preventDefault();$("#dlg").close(v||"cancel")});
+
+/* ── Controles ── */
+let tm=null;
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tm);tm=setTimeout(()=>t.hidden=true,3600)}
+function setT(t){S.t=Math.max(0,Math.min(47.9,t));render()}
+$("#scrub").addEventListener("input",e=>setT(+e.target.value));
+let last=0;
+function loop(ts){if(!S.playing)return;if(last){const dt=(ts-last)/1000;S.t+=dt*0.6*S.speed;if(S.t>=47.9){S.t=47.9;togglePlay(false)}render()}last=ts;requestAnimationFrame(loop)}
+function togglePlay(on){S.playing=on??!S.playing;last=0;$("#play-ic").innerHTML=S.playing?'<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>':'<path d="M7 4v16l13-8z"/>';$("#play").setAttribute("aria-label",S.playing?"Pausar simulación":"Reproducir simulación de crecida");if(S.playing){if(S.t>=47.8)S.t=18;requestAnimationFrame(loop)}}
+$("#play").onclick=()=>togglePlay();
+$$("#speed button").forEach(b=>b.onclick=()=>{S.speed=+b.dataset.v;$$("#speed button").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+$$("#scen .chip").forEach(b=>b.onclick=()=>{S.scen=b.dataset.s;$$("#scen .chip").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+$$("#layers .chip").forEach(b=>b.onclick=()=>{const k=b.dataset.l;S.layers[k]=!S.layers[k];b.setAttribute("aria-pressed",S.layers[k]);render()});
+$$("#tabs button,.rail button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S.sel=null;render()});
+$("#open-alert").onclick=()=>openAlert(null);
+$$("#roles button").forEach(b=>b.onclick=()=>{S.role=b.dataset.role;$$("#roles button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  $("#view-op").hidden=S.role!=="op";$("#view-bri").hidden=S.role!=="bri";$("#view-vec").hidden=S.role!=="vec";render()});
+$("#theme").onclick=()=>{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;r.dataset.theme=dark?"light":"dark"};
+
+drawHydroStatic();render();
+})();
+</script>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Atlas del proyecto Elqui: integración del Título e Innovación III, datos GNSS, calidad y presupuesto interactivo."><title>Elqui · Del territorio a la decisión</title>
+<style>
+/* Layout: libreta de terreno técnica. Columna de ~1120px; cada concepto = ficha con texto a la izquierda y figura/calculadora a la derecha. Motivo: la cruz naranja de los puntos de control (GCP) del vuelo. */
+:root{
+  --bg:#f2f4f5; --paper:#fbfcfc; --ink:#18232b; --muted:#566570; --line:#d3dade;
+  --gcp:#d4561d; --gcp-soft:#fbe5da; --geo:#1f6f8b; --geo-soft:#dcedf3;
+  --ok:#2c7a4b; --warn:#b77c0b; --bad:#b8352a; --terrain:#8a7a55;
+  --f-head:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1519; --paper:#151e23; --ink:#e4ebee; --muted:#9aabb4; --line:#27343b;
+  --gcp:#f07a43; --gcp-soft:#3a2216; --geo:#6cc0dc; --geo-soft:#15303a;
+  --ok:#5cc18a; --warn:#e8b54a; --bad:#ef7468; --terrain:#c2ad7c; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --paper:#151e23; --ink:#e4ebee; --muted:#9aabb4; --line:#27343b;
+  --gcp:#f07a43; --gcp-soft:#3a2216; --geo:#6cc0dc; --geo-soft:#15303a;
+  --ok:#5cc18a; --warn:#e8b54a; --bad:#ef7468; --terrain:#c2ad7c; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-head);margin:0;line-height:1.05;text-wrap:balance}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font:600 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button,input,select{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gcp);outline-offset:2px}
+
+/* Portada */
+.hero{padding-block:52px 34px;display:grid;gap:18px}
+.hero h1{font-size:clamp(40px,6.4vw,74px);font-weight:800;letter-spacing:-.01em;max-width:15ch}
+.hero h1 .x{display:inline-block;width:.62em;height:.62em;position:relative;vertical-align:.05em;margin-right:.12em}
+.hero h1 .x::before,.hero h1 .x::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:24%;background:var(--gcp);transform:translate(-50%,-50%) rotate(45deg)}
+.hero h1 .x::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.lede{max-width:64ch;color:var(--muted);font-size:19px}
+.lede b{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.facts span{font:500 13px var(--f-mono);padding:5px 10px;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+.toc{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:6px}
+.toc a{display:grid;gap:2px;padding:10px 12px;border-left:3px solid var(--gcp);background:var(--paper);text-decoration:none;color:var(--ink)}
+.toc a:hover{background:var(--gcp-soft)}
+.toc b{font:700 17px var(--f-head)}
+@media (max-width:820px){.toc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Conceptos */
+.concept{padding-block:52px;border-top:2px solid var(--ink);display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:36px;align-items:start}
+@media (max-width:900px){.concept{grid-template-columns:1fr;gap:22px}}
+.tag{display:inline-flex;align-items:center;gap:8px;font:600 13px var(--f-mono);color:var(--gcp)}
+.tag i{width:12px;height:12px;position:relative;display:inline-block}
+.tag i::before,.tag i::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:3px;background:var(--gcp);transform:translate(-50%,-50%) rotate(45deg)}
+.tag i::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.concept h2{font-size:clamp(28px,3.3vw,38px);font-weight:700;margin-top:6px}
+.text{display:grid;gap:14px;min-width:0}
+.text p{max-width:62ch}
+.def{border-left:3px solid var(--geo);padding:2px 0 2px 14px}
+.def b{font-family:var(--f-head);font-size:18px}
+.example{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px}
+.example .eyebrow{color:var(--gcp)}
+.src{font:400 12.5px var(--f-mono);color:var(--muted)}
+figure{margin:0;display:grid;gap:10px;min-width:0}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:12px;min-width:0}
+.svgbox{overflow-x:auto}
+.svgbox svg{display:block;width:100%;height:auto;min-width:520px}
+figcaption{font-size:14px;color:var(--muted)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:transparent;padding:6px 11px;font:500 13px var(--f-mono);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stats div{border-top:2px solid var(--line);padding-top:6px;min-width:0}
+.stats b{display:block;font:600 21px var(--f-mono)}
+.stats span{font-size:13px;color:var(--muted)}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chip{font:600 12px var(--f-mono);padding:3px 8px;border-radius:3px;white-space:nowrap}
+.c-ok{background:color-mix(in oklab,var(--ok) 16%,transparent);color:var(--ok)}
+.c-warn{background:color-mix(in oklab,var(--warn) 18%,transparent);color:var(--warn)}
+.c-bad{background:color-mix(in oklab,var(--bad) 16%,transparent);color:var(--bad)}
+label.sl{display:grid;gap:4px;font-size:14.5px}
+label.sl span{display:flex;justify-content:space-between;gap:8px}
+input[type=range]{width:100%;accent-color:var(--gcp)}
+.sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:620px){.sliders{grid-template-columns:1fr}}
+
+/* Tablas */
+.tbox{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font:600 11.5px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg)}
+td.n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+
+/* Semáforo QC */
+.qc{display:grid;gap:6px}
+.qc-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:6px;background:var(--bg)}
+.qc-row .dot{width:12px;height:12px;border-radius:50%}
+.qc-row small{display:block;color:var(--muted);font-size:13px}
+.risk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.risk{grid-template-columns:1fr}}
+.risk button{text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:10px 12px;cursor:pointer;display:grid;gap:4px}
+.risk button[aria-pressed=true]{border-color:var(--gcp);box-shadow:inset 3px 0 0 var(--gcp)}
+.risk b{font:700 16px var(--f-head)}
+.riskdetail{background:var(--gcp-soft);border-radius:6px;padding:12px 14px;font-size:15px;display:grid;gap:6px}
+
+/* Presupuesto */
+.budget{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:760px){.budget{grid-template-columns:1fr}}
+.inputs{display:grid;gap:8px}
+.inp{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:8px;align-items:center;font-size:14px}
+.inp input{width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);font-family:var(--f-mono);font-size:13.5px;text-align:right}
+.inp .ex{font:500 10.5px var(--f-mono);color:var(--warn);margin-left:4px}
+.inp .src2{font:500 10.5px var(--f-mono);color:var(--ok);margin-left:4px}
+.group{font:700 15px var(--f-head);margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);padding-top:8px}
+.total b{font:700 26px var(--f-mono)}
+.warnbox{border:1px solid var(--warn);background:color-mix(in oklab,var(--warn) 10%,transparent);border-radius:6px;padding:10px 12px;font-size:14px}
+.closing{padding-block:44px;border-top:2px solid var(--ink);display:grid;gap:14px}
+.closing ul{margin:0;padding-left:20px;display:grid;gap:6px;max-width:70ch}
+footer{padding-block:24px 44px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+
+/* Integración Título ↔ Innovación III */
+:root{--tit:#1f6f8b;--inn:#7a3fb0;--inn-soft:#efe4f8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tit:#6cc0dc;--inn:#c69bf0;--inn-soft:#2c1d3a}}
+:root[data-theme="dark"]{--tit:#6cc0dc;--inn:#c69bf0;--inn-soft:#2c1d3a}
+.band{padding-block:44px;border-top:2px solid var(--ink);display:grid;gap:18px}
+.band h2{font-size:clamp(28px,3.3vw,38px)}
+.band > p{max-width:70ch}
+.pipe{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;position:relative}
+@media (max-width:900px){.pipe{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stage{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:12px;text-align:left;cursor:pointer;display:grid;gap:6px;align-content:start;min-height:118px}
+.stage[data-p=tit]{border-top:4px solid var(--tit)}
+.stage[data-p=inn]{border-top:4px solid var(--inn)}
+.stage[aria-pressed=true]{box-shadow:0 0 0 2px var(--gcp)}
+.stage .who{font:600 10.5px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.stage[data-p=tit] .who{color:var(--tit)} .stage[data-p=inn] .who{color:var(--inn)}
+.stage b{font:700 17px var(--f-head);line-height:1.15}
+.stage small{font-size:13px;color:var(--muted)}
+.handoff{grid-column:4;position:relative}
+.legend2{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px}
+.legend2 i{display:inline-block;width:14px;height:4px;margin-right:6px;vertical-align:middle}
+.sdetail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px}
+@media (max-width:760px){.sdetail{grid-template-columns:1fr}}
+.sdetail h3{font-size:20px;grid-column:1/-1}
+.sdetail ul{margin:4px 0 0;padding-left:18px;font-size:14.5px;display:grid;gap:3px}
+.gap{border-left:4px solid var(--gcp);background:var(--gcp-soft);padding:12px 14px;border-radius:0 6px 6px 0;font-size:15px}
+.fit{display:grid;gap:8px}
+.fit-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 130px;gap:12px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+@media (max-width:760px){.fit-row{grid-template-columns:1fr}}
+.fit-row .k{font:600 11px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.fit-row .k.i{color:var(--inn)} .fit-row .k.t{color:var(--tit)}
+.fit-row p{font-size:14.5px}
+.fit-row .todo{grid-column:1/-1;font-size:14px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px}
+.fitsum{display:flex;flex-wrap:wrap;gap:8px}
+.innote{border-left:3px solid var(--inn);background:var(--inn-soft);padding:10px 14px;border-radius:0 6px 6px 0;display:grid;gap:4px;font-size:15px}
+.innote .eyebrow{color:var(--inn)}
+
+/* Versión 2: atlas territorial. Sin dependencias ni fuentes externas. */
+:root{--bg:#f3f6f8;--paper:#fff;--ink:#163449;--muted:#516878;--line:#d5e1e7;--gcp:#195e88;--gcp-soft:#e3eef6;--geo:#28728c;--geo-soft:#e1f0f4;--ok:#236847;--warn:#80520a;--bad:#a73737;--terrain:#6b8b94;--tit:#195e88;--inn:#217267;--inn-soft:#e2f2ee;--f-head:'Segoe UI',Arial,sans-serif;--f-body:'Segoe UI',Arial,sans-serif;--f-mono:'Segoe UI',Arial,sans-serif;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#f3f6f8;--paper:#fff;--ink:#163449;--muted:#516878;--line:#d5e1e7;--gcp:#195e88;--gcp-soft:#e3eef6;--geo:#28728c;--geo-soft:#e1f0f4;--ok:#236847;--warn:#80520a;--bad:#a73737;--terrain:#6b8b94;--tit:#195e88;--inn:#217267;--inn-soft:#e2f2ee;color-scheme:light}}
+html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;padding:0;font-size:16px;line-height:1.65}h1,h2,h3{font-weight:650;letter-spacing:-.045em}button,input,select,a{touch-action:manipulation}.wrap{max-width:1280px;padding:0 40px}p{max-width:72ch}.eyebrow{font-size:13px;letter-spacing:0;text-transform:none}.skip{position:fixed;top:-100px;left:20px;background:white;padding:12px;z-index:50}.skip:focus{top:10px}.top{position:sticky;top:0;background:#ffffffed;backdrop-filter:blur(12px);z-index:20;border-bottom:1px solid var(--line)}.top .wrap{height:76px;display:flex;align-items:center;gap:30px}.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-size:25px;font-weight:750;letter-spacing:-1px}.brand svg{width:35px;height:35px}.brand small{font-size:13px;font-weight:400;letter-spacing:0;border-left:1px solid var(--line);padding-left:14px;margin-left:8px}.top nav{margin-left:auto;display:flex;gap:24px}.top nav a{text-decoration:none;color:var(--muted);font-size:14px}.top nav a:hover{color:var(--gcp)}.hero{padding:70px 0 45px;display:grid;grid-template-columns:1fr 1.1fr;gap:46px;align-items:center}.hero h1{font-size:clamp(48px,6.1vw,82px);max-width:12ch;line-height:1.02;letter-spacing:-.06em}.hero .lede{font-size:18px;line-height:1.65;margin:25px 0}.hero .eyebrow{color:var(--gcp);display:flex;align-items:center;gap:10px;margin-bottom:22px}.hero .eyebrow:before{content:'';height:2px;width:25px;background:var(--gcp)}.hero-actions{display:flex;flex-wrap:wrap;gap:10px}.action{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 17px;border-radius:8px;background:white;border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600;font-size:14px}.action.primary{background:var(--gcp);border-color:var(--gcp);color:white}.hero-note{font-size:12px;color:var(--muted);margin-top:20px}.atlas{background:#e9f0f3;border:1px solid #cbdce5;border-radius:26px;overflow:hidden;display:block}.atlas-head{padding:20px 24px;display:flex;justify-content:space-between;font-size:13px;gap:15px}.atlas svg{width:100%;height:auto;display:block}.atlas figcaption{border-top:1px solid #cbdce5;padding:16px 24px;font-size:12px;display:flex;justify-content:space-between;gap:20px}.atlas-key{color:var(--gcp);font-weight:600}.headline-facts{display:grid;grid-template-columns:repeat(4,1fr);padding:26px 0;border-block:1px solid var(--line);margin-bottom:30px}.headline-facts div{padding:0 24px;border-left:1px solid var(--line)}.headline-facts div:first-child{padding-left:0;border:0}.headline-facts strong{font-size:30px;font-weight:600;letter-spacing:-1px;display:block;line-height:1.4}.headline-facts span{font-size:13px;color:var(--muted)}.toc{display:none}.band{padding:55px 0;border-top:0;gap:20px}.band h2{font-size:42px;max-width:22ch}.band>p{font-size:15px;color:var(--muted)}.pipe{gap:10px}.stage{border-radius:12px;padding:18px 14px;min-height:150px}.stage b{font-size:17px;font-weight:600;line-height:1.3;letter-spacing:-.02em}.stage .who{letter-spacing:0;text-transform:none;font-size:12px}.stage[aria-pressed=true]{background:var(--gcp);color:white;border-color:var(--gcp);box-shadow:none}.stage[aria-pressed=true] .who,.stage[aria-pressed=true] small{color:#d7e8f3}.stage[style]{outline:none!important}.sdetail{padding:25px;border-radius:14px;gap:22px}.sdetail h3{font-size:25px}.gap{border-left-color:#b98b3b;background:#fbf4e7;border-radius:0 10px 10px 0;font-size:14px}.legend2{font-size:13px}.fit{gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}.fit-row{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:20px;gap:18px}.fit-row:last-child{border:0}.fit-row .k{font-size:12px;text-transform:none;letter-spacing:0}.fit-row p{font-size:14px}.fit-row .todo{font-size:13px}.seg{border:0;gap:5px;border-radius:0;overflow:visible}.seg button{border:1px solid var(--line)!important;background:white;border-radius:6px;min-height:40px;padding:8px 13px;font-size:13px}.seg button[aria-pressed=true]{background:var(--gcp);border-color:var(--gcp)!important;color:white}.concept{border-top:1px solid var(--line);padding:64px 0;gap:38px;grid-template-columns:minmax(0,5fr) minmax(0,7fr)}.concept h2{font-size:38px;margin-top:10px}.tag{font-size:13px;font-weight:500}.tag i{display:none}.text{gap:19px}.text p{font-size:15px}.text .def{font-size:14px;border-left:2px solid var(--geo);padding-left:16px}.def b{font-size:16px}.example{border:0;border-radius:10px;background:var(--geo-soft);padding:18px}.example .eyebrow{color:var(--geo);font-weight:600}.innote{border-radius:0 10px 10px 0;padding:15px;font-size:14px}.panel{padding:23px;border-radius:16px;gap:17px;box-shadow:0 5px 22px #17334704}.stats{gap:14px}.stats b{font-weight:600;font-size:22px;letter-spacing:-.7px}.stats span{font-size:12px}.stats div{border-top:1px solid var(--line);padding-top:10px}.src{font-size:12px;line-height:1.7}.chip{font-size:12px;font-weight:600;white-space:normal;border-radius:5px;padding:4px 8px}.tbox{border-radius:12px}th{text-transform:none;letter-spacing:0;font-size:12px}td,th{padding:11px}.qc-row{padding:13px;border-radius:8px;gap:12px}.qc-row b{font-size:14px}.qc-row small{font-size:12px}.qc-row .dot{width:8px;height:8px}.risk button{border-radius:10px;padding:14px}.risk b{font-size:16px;font-weight:600}.riskdetail{padding:18px;border-radius:10px;font-size:14px}.budget{grid-template-columns:1fr;gap:28px}.inputs{grid-template-columns:1fr 1fr;gap:12px}.inputs .group{grid-column:1/-1;margin-top:12px;font-size:15px}.inp{grid-template-columns:1fr;font-size:13px;align-content:start}.inp input{padding:10px;border-radius:7px;font-size:14px;min-height:42px}.inp .ex,.inp .src2{font-size:10px}.total{padding:17px 0;border-color:var(--gcp)}.total b{font-size:35px;letter-spacing:-1px}.warnbox{border:0;border-left:3px solid #b98b3b;border-radius:0 10px 10px 0;background:#fbf4e7;font-size:14px;padding:16px}.closing{border:0;border-radius:20px;background:var(--gcp);color:white;padding:35px;margin:25px 0 40px}.closing .eyebrow{color:#d0e6f3}.closing ul{max-width:90ch;font-size:14px;line-height:1.8}.closing h2{font-size:32px!important}.closing a{color:white}.sources-v2{padding:30px 0;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}.sources-v2 h3{font-size:23px;color:var(--ink);margin-bottom:18px}.sources-v2 ol{padding-left:20px;line-height:1.9}.sources-v2 a{color:var(--gcp);text-underline-offset:3px}footer{font-size:12px;line-height:1.8;padding:24px 0 35px}.svgbox svg{font-family:'Segoe UI',Arial,sans-serif}.fit-count-note{color:var(--muted);font-size:12px}.bottom-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+@media(max-width:1000px){.wrap{padding:0 25px}.hero{gap:25px}.hero h1{font-size:60px}.brand small{display:none}.top nav{gap:17px}.pipe{grid-template-columns:repeat(3,1fr)}.concept{gap:25px}.stats{grid-template-columns:repeat(2,1fr)}.sdetail{grid-template-columns:1fr 1fr}.sdetail>div:last-child{grid-column:1/-1}}
+@media(max-width:800px){html{scroll-padding-top:125px}.wrap{padding:0 18px}.top .wrap{height:auto;min-height:94px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px;gap:9px}.top nav{margin:0;width:100%;justify-content:space-between;gap:8px}.top nav a{font-size:12px}.hero{grid-template-columns:1fr;padding:40px 0 30px}.hero h1{font-size:58px;max-width:15ch}.hero .lede{font-size:16px}.atlas{border-radius:18px}.headline-facts{grid-template-columns:1fr 1fr;gap:24px}.headline-facts div:nth-child(3){padding:0;border:0}.headline-facts strong{font-size:27px}.headline-facts span{font-size:12px}.concept{grid-template-columns:1fr;padding:42px 0;gap:24px}.band{padding:35px 0}.band h2{font-size:34px}.concept h2{font-size:33px}.fit-row{grid-template-columns:1fr;gap:11px}.sdetail{grid-template-columns:1fr}.sdetail>div:last-child{grid-column:auto}.closing{padding:25px}.panel{padding:18px}.svgbox svg{min-width:480px}.pipe{grid-template-columns:repeat(2,1fr)}.stage{min-height:130px}.hero-note{max-width:48ch}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+@media print{.top,.hero-actions,.skip,.bottom-links{display:none}.wrap{max-width:none;padding:0}.hero{padding:10px 0;grid-template-columns:1fr 1fr}.hero h1{font-size:40px}.concept,.band{break-inside:avoid;padding:22px 0}.concept{grid-template-columns:1fr 1fr}.atlas,.closing{print-color-adjust:exact}.sources-v2{break-before:page}}
+</style></head><body><a class="skip" href="#main">Ir al contenido</a><header class="top"><div class="wrap"><a class="brand" href="#main"><svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="11" fill="#195e88"/><path d="M8 10C28 7 7 21 27 18M8 18C28 15 7 29 27 26" stroke="white" stroke-width="2.4" fill="none"/></svg>Elqui<small>Atlas del proyecto</small></a><nav aria-label="Navegación principal"><a href="#cadena">Integración</a><a href="#c1">Territorio</a><a href="#c4">Calidad</a><a href="#c5">Presupuesto</a><a href="#fuentes-v2">Fuentes</a></nav></div></header>
+
+<main class="wrap" id="main">
+<header class="hero"><div><span class="eyebrow">Vicuña, Región de Coquimbo</span><h1>Del territorio<br>a la decisión.</h1><p class="lede">El Proyecto de Título aporta la base geomática. Innovación III propone convertirla en escenarios de inundación y avisos por manzana con <b>ElquiAlerta</b>.</p><div class="hero-actions"><a class="action primary" href="#cadena">Explorar la integración</a><a class="action" href="../02_ElquiAlerta/apps/admin/prototype/index.html">Ver prototipo ElquiAlerta</a></div><p class="hero-note">Entrega académica. La modelación hidráulica y la conexión operativa permanecen pendientes.</p></div><figure class="atlas"><div class="atlas-head"><b>Red de apoyo del levantamiento</b><span class="atlas-key">PC1–PC7</span></div><svg id="hero-map" viewBox="0 0 600 370" role="img" aria-label="Distribución de puntos de apoyo según sus coordenadas UTM. La envolvente gráfica es ilustrativa, no una zona inundable."></svg><figcaption><span>WGS 84 / UTM 19S<br>Ajuste GNSS · 26 sep 2026</span><span>Coordenadas documentadas<br>Envolvente ilustrativa</span></figcaption></figure></header><div class="headline-facts"><div><strong>1,43 km²</strong><span>Cobertura planificada del vuelo</span></div><div><strong>7 puntos</strong><span>Apoyo terrestre PC1–PC7</span></div><div><strong>≈ 2,9 cm</strong><span>GSD estimado por píxel</span></div><div><strong>1–3 mm</strong><span>RMS interno de vectores GNSS</span></div></div>
+
+<!-- Parte 1: cadena -->
+<section class="band" id="cadena">
+  <span class="eyebrow">Parte 1 · La cadena completa</span>
+  <h2>Un proyecto alimenta al siguiente.</h2>
+  <p>La tesis lo dice explícitamente: su alcance <b>“no contempla el desarrollo de la modelación hidráulica, el cálculo de caudales, la simulación de escenarios de inundación ni la elaboración de una zonificación oficial de riesgo”</b>, que corresponden a un <b>“trabajo hidráulico desarrollado por separado”</b> (Cap. 2, Alcances). Ese trabajo es el desafío de Innovación III. Toca cada etapa para ver qué recibe, qué entrega y de dónde sale.</p>
+  <div class="legend2"><span><i style="background:var(--tit)"></i>Proyecto de Título (geomática)</span><span><i style="background:var(--inn)"></i>Innovación III (modelación y comunicación del riesgo)</span><span><i style="background:var(--gcp)"></i>Punto de traspaso: el MDT</span></div>
+  <div class="pipe" id="pipe"></div>
+  <div class="sdetail" id="sdetail" aria-live="polite"></div>
+  <div class="gap"><b>Brecha crítica en el traspaso:</b> la fotogrametría UAV no registra el fondo sumergido del río (Cap. 2, FODA, Debilidades). HEC-RAS necesita la geometría del cauce bajo el agua para calcular cuánto caudal cabe antes del desborde. Sin batimetría o un levantamiento con estación total del lecho (la tesis lo deja <b>“planificado y presupuestado para una etapa posterior”</b>), el modelo de Innovación III subestimaría o sobreestimaría la crecida. Es el mismo riesgo que advierte Eduardo Araya en la Ficha 6.</div>
+</section>
+
+<!-- Parte 2: encaje -->
+<section class="band" id="encaje">
+  <span class="eyebrow">Parte 2 · Cómo encajan los resultados</span>
+  <h2>Lo que conecta los dos proyectos.</h2>
+  <p>Cada fila toma una afirmación de las fichas del curso y la contrasta con lo que midió o documentó la tesis. <b>Confirma</b>: la tesis la respalda con datos. <b>Precisa</b>: la respalda y le pone un número real. <b>Tensiona</b>: hay que ajustar algo antes de entregar.</p>
+  <div class="row"><span class="eyebrow">Filtrar</span><div class="seg" id="fit-f" role="group" aria-label="Filtrar por resultado"><button data-f="all" aria-pressed="true">Todos</button><button data-f="Confirma" aria-pressed="false">Confirma</button><button data-f="Precisa" aria-pressed="false">Precisa</button><button data-f="Tensiona" aria-pressed="false">Tensiona</button></div><div class="fitsum" id="fit-sum"></div></div>
+  <div class="fit" id="fit"></div>
+</section>
+
+<!-- 1 -->
+<section class="concept" id="c1">
+  <div class="text">
+    <span class="tag"><i></i>Clave 1 · Geodesia</span>
+    <h2>Referencia geodésica y tipos de altura</h2>
+    <p>Todo levantamiento parte de un punto con coordenadas conocidas. El proyecto se vinculó al <b>monolito LE-12 de la DOH</b> (sector Calingasta), porque es oficial, tiene cota nivelada y queda cerca del tramo.</p>
+    <p class="def"><b>H = h − N.</b> El GNSS entrega altura <b>elipsoidal (h)</b>. Para un río importa la altura <b>ortométrica (H)</b>, sobre el geoide. La diferencia es la <b>ondulación geoidal (N)</b>, que aquí se tomó del modelo EGM2008.</p>
+    <div class="example"><span class="eyebrow">Ejemplo práctico</span>
+      <p>Elige un punto de control. En Vicuña N vale cerca de <b>33 m</b>: si se confundiera h con H, todo el modelo del cauce quedaría 33 m “más alto” y la simulación hidráulica no serviría.</p></div>
+    <div class="innote"><span class="eyebrow">En Innovación III</span><p>Esta es la versión real del concepto 1 del curso (DEM). La página de conceptos usaba un error de DEM de ±0,5 m como ejemplo; los puntos de control reales tienen σU de 2 a 3 mm. Estos indicadores internos no descartan errores sistemáticos ni demuestran la exactitud del MDT o del fondo del cauce.</p></div>
+    <p class="src">Fuente: Cap. 2, Planificación geodésica e Ilustración 161 (coordenadas ajustadas PC1–PC7).</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="row"><span class="eyebrow">Punto</span><div class="seg" id="pc-sel" role="group" aria-label="Punto de control"></div></div>
+      <div class="svgbox"><svg id="heights" viewBox="0 0 640 260" role="img" aria-label="Relación entre altura elipsoidal, geoide y altura ortométrica"></svg></div>
+      <div class="stats" id="pc-stats"></div>
+    </div>
+    <div class="panel">
+      <span class="eyebrow">Perfil de elevación de los puntos de apoyo (EGM2008)</span>
+      <div class="svgbox"><svg id="profile" viewBox="0 0 640 200" role="img" aria-label="Elevación de PC1 a PC7 según coordenada Este"></svg></div>
+    </div>
+    <figcaption>Valores reales del ajuste en Magnet Tools (26-09-2026). La línea une puntos de apoyo: no representa el fondo ni la pendiente hidráulica del río.</figcaption>
+  </figure>
+</section>
+
+<!-- 2 -->
+<section class="concept" id="c2">
+  <div class="text">
+    <span class="tag"><i></i>Clave 2 · GNSS</span>
+    <h2>Calidad del posicionamiento GNSS</h2>
+    <p>Un punto GNSS vale lo que valen sus indicadores. Los tres que se revisan son:</p>
+    <p class="def"><b>PDOP</b> · geometría de los satélites. Menor es mejor; el criterio del proyecto es ≤ 3.<br><b>RMS</b> · dispersión de la solución del vector. El capítulo adopta una referencia de 2 cm, pendiente de contraste normativo.<br><b>σ (desviación estándar)</b> · incertidumbre de la coordenada ajustada.</p>
+    <div class="example"><span class="eyebrow">Ejemplo práctico</span>
+      <p>Los 7 vectores Base PPK → PC muestran indicadores internos favorables. Pero cada punto salió de <b>un solo vector</b>, sin figuras cerradas: un error en la altura de antena no aparecería en estos números. Por eso se distingue <b>precisión interna</b> (lo que dice el software) de <b>exactitud externa</b> (contraste con puntos independientes).</p></div>
+    <div class="innote"><span class="eyebrow">En Innovación III</span><p>El proyecto aporta a la brecha cartográfica de la Ficha 9: la red queda amarrada al monolito oficial de la DOH. Así, los mapas de inundación de Innovación III se pueden superponer con la información que la DOH ya tiene del cauce.</p></div>
+    <p class="src">Fuente: Cap. 2, Control del posicionamiento geodésico e Ilustración 160.</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="row"><span class="eyebrow">Indicador</span><div class="seg" id="gnss-sel" role="group" aria-label="Indicador GNSS">
+        <button data-m="pdop" aria-pressed="true">PDOP</button><button data-m="rms" aria-pressed="false">RMS</button><button data-m="sat" aria-pressed="false">Satélites</button><button data-m="len" aria-pressed="false">Longitud vs. tiempo</button></div></div>
+      <div class="svgbox"><svg id="gnss" viewBox="0 0 640 260" role="img" aria-label="Indicadores de calidad por vector GNSS"></svg></div>
+      <p id="gnss-note" style="font-size:14.5px"></p>
+    </div>
+    <div class="tbox"><table>
+      <thead><tr><th>Vector</th><th>Long. (m)</th><th>Duración</th><th>Sat.</th><th>PDOP</th><th>RMS (m)</th><th>Estado</th></tr></thead>
+      <tbody id="gnss-tbody"></tbody></table></div>
+  </figure>
+</section>
+
+<!-- 3 -->
+<section class="concept" id="c3">
+  <div class="text">
+    <span class="tag"><i></i>Clave 3 · Fotogrametría</span>
+    <h2>Diseño del vuelo: GSD, traslapes y autonomía</h2>
+    <p>El <b>GSD</b> (tamaño del píxel en el terreno) crece con la altura de vuelo. Los <b>traslapes</b> definen cuántas fotos ven cada punto. Las dos cosas mandan sobre la calidad del modelo, el número de fotos y las baterías que hay que llevar.</p>
+    <p class="def"><b>GSD = (ancho del sensor × altura) / (focal × píxeles)</b><br>Mavic 3E: sensor 17,3 mm, focal 12,29 mm, 5280 px.</p>
+    <div class="example"><span class="eyebrow">Ejemplo práctico</span>
+      <p>El plan original daba 2,42 cm/px. El viento obligó a subir a <b>110 m</b> y el GSD pasó a ~2,9 cm/px, todavía bajo el límite de 3,0 cm para escala 1:500. Con solo 3 baterías se usó 70 % de traslape frontal, bajo el 80 % que pide la DOH. Mueve los controles y mira qué cambia.</p></div>
+    <div class="innote"><span class="eyebrow">En Innovación III</span><p>La Ficha 8 prometía “resolución &lt; 5 m” frente a plataformas de más de 30 m. El capítulo estima <b>~2,9 cm/píxel</b> en el vuelo y 12,5 m en el DEM gratuito ALOS PALSAR que usó la tesis para el contexto comunal. Para HEC-RAS 2D se remuestrea el MDT a una malla de 1 a 5 m: la resolución y exactitud requeridas deben validarse, junto con el lecho sumergido.</p></div>
+    <p class="src">Fuente: Cap. 2, Planificación del levantamiento UAV-PPK, Control de la adquisición y Decisiones sobre el levantamiento.</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="sliders">
+        <label class="sl" for="fh"><span>Altura de vuelo <b class="mono" id="fh-v"></b></span><input id="fh" type="range" min="60" max="150" step="1" value="110"></label>
+        <label class="sl" for="ff"><span>Traslape frontal <b class="mono" id="ff-v"></b></span><input id="ff" type="range" min="60" max="90" step="5" value="70"></label>
+        <label class="sl" for="fs"><span>Traslape lateral <b class="mono" id="fs-v"></b></span><input id="fs" type="range" min="40" max="85" step="5" value="70"></label>
+      </div>
+      <div class="svgbox"><svg id="overlap" viewBox="0 0 640 200" role="img" aria-label="Huellas de fotos con traslape frontal y lateral"></svg></div>
+      <div class="stats" id="flight-stats"></div>
+      <div class="row" id="flight-checks"></div>
+    </div>
+    <figcaption>Modelo calibrado con la planificación real: 1,43 km², 44,32 km y 60 min a 2,42 cm/px con 70/70 %. Supuesto: unos 20 min útiles por batería (3 baterías ≈ 60 min). Valores orientativos.</figcaption>
+  </figure>
+</section>
+
+<!-- 4 -->
+<section class="concept" id="c4">
+  <div class="text">
+    <span class="tag"><i></i>Clave 4 · Calidad</span>
+    <h2>Control de calidad y gestión de riesgos</h2>
+    <p>Evaluar un proyecto geomático es decidir, antes de ejecutarlo, con qué criterio se <b>acepta, condiciona o rechaza</b> cada producto. Después se compara lo planificado con lo obtenido.</p>
+    <p>La otra mitad es anticipar lo que puede salir mal. El proyecto clasificó sus riesgos en alto, medio y bajo, y anotó cuáles <b>ocurrieron de verdad</b> en terreno.</p>
+    <div class="example"><span class="eyebrow">Ejemplo práctico</span>
+      <p>El semáforo resume los criterios del capítulo. Hay dos puntos que el informe debe explicar: el traslape frontal bajo norma y el error de reproyección de 1,21 px. A la derecha, toca un riesgo para ver su causa y su medida.</p></div>
+    <div class="innote"><span class="eyebrow">En Innovación III</span><p>La matriz PESTAL (Ficha 7) ya advertía que “la calidad del modelo depende directamente de la precisión de la topografía”. Este semáforo organiza la evidencia documentada y los controles que quedan por verificar. Los indicadores pendientes y los aspectos por revisar pasan como incertidumbre al modelo hidráulico y, por lo tanto, a los mensajes de ElquiAlerta: por eso el prototipo dice “escenario no validado”.</p></div>
+    <p class="src">Fuente: Cap. 2, secciones 15 (control de calidad), 17 (FODA) y 18 (riesgos técnicos).</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="row"><span class="eyebrow">Semáforo de control</span><div class="seg" id="qc-f" role="group" aria-label="Filtro"><button data-f="all" aria-pressed="true">Todos</button><button data-f="ok" aria-pressed="false">Documentado</button><button data-f="warn" aria-pressed="false">Por verificar</button><button data-f="bad" aria-pressed="false">Por revisar</button></div></div>
+      <div class="qc" id="qc"></div>
+    </div>
+    <div class="panel">
+      <span class="eyebrow">Riesgos técnicos y operacionales</span>
+      <div class="risk" id="risk"></div>
+      <div class="riskdetail" id="risk-d" aria-live="polite"></div>
+    </div>
+  </figure>
+</section>
+
+<!-- 5 -->
+<section class="concept" id="c5">
+  <div class="text">
+    <span class="tag"><i></i>Clave 5 · Economía</span>
+    <h2>Presupuesto por valor hora y comparación de métodos</h2>
+    <p>Un presupuesto geomático suma <b>recursos humanos</b> (horas × valor hora), <b>instrumental</b> (arriendo por día), <b>operación</b> (combustible, colaciones) y un margen de <b>imprevistos</b>.</p>
+    <p>Además sirve para elegir el método. La tesis justifica el UAV porque cubrir 1,43 km² con estación total era <b>inviable en el plazo</b>. La calculadora pone esa decisión en pesos.</p>
+    <div class="example"><span class="eyebrow">Ejemplo práctico</span>
+      <p>Los valores hora salen del presupuesto del seminario 2024 (Altos Los Porotitos), del mismo equipo docente. Los valores marcados <span class="mono" style="color:var(--warn)">EJEMPLO</span> son supuestos editables: reemplázalos por las cotizaciones reales para el Capítulo 3.</p></div>
+    <div class="warnbox"><b>Alcance del presupuesto:</b> se estiman honorarios brutos y costos del levantamiento. No se incluye modelación hidráulica, batimetría complementaria, desarrollo ni operación de ElquiAlerta. No es una cotización.</div>
+    <div class="innote"><span class="eyebrow">En Innovación III</span><p>La Ficha 12 comparó cinco alternativas solo por niveles (alto, medio, bajo). Con este presupuesto se puede poner un número a la propuesta y compararla con lo que protege: el Plan Comunal de Reducción del Riesgo de Desastres de Vicuña 2023–2025 estima <b>unas 5.000 personas expuestas</b> a crecidas (citado en el Cap. 2).</p></div>
+    <p class="src">Fuente: Seminario 2024, Cap. III, secciones 27 y 29; Cap. 2 (2026), Decisiones sobre el levantamiento aerofotogramétrico.</p>
+  </div>
+  <figure>
+    <div class="panel">
+      <div class="budget">
+        <div class="inputs" id="b-inputs"></div>
+        <div style="display:grid;gap:12px;align-content:start">
+          <span class="eyebrow">Escenario UAV-PPK (método del proyecto)</span>
+          <div class="tbox"><table><tbody id="b-table"></tbody></table></div>
+          <div class="total"><span>Total con imprevistos</span><b id="b-total"></b></div>
+          <p class="mono" id="b-net" style="font-size:13px;color:var(--muted)"></p>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <span class="eyebrow">Comparación de métodos para 1,43 km²</span>
+      <div class="svgbox"><svg id="compare" viewBox="0 0 640 170" role="img" aria-label="Comparación de costo y días entre UAV y estación total"></svg></div>
+      <p id="compare-note" style="font-size:14.5px"></p>
+    </div>
+    <div class="panel">
+      <span class="eyebrow">La propuesta frente a los antecedentes (Ficha 12 + este presupuesto)</span>
+      <div class="tbox"><table>
+        <thead><tr><th>Alternativa</th><th>Costo (Ficha 12)</th><th>¿Dice qué manzana se inunda?</th></tr></thead>
+        <tbody>
+          <tr><td>Defensas fluviales, sector Ruta 5 (570 m)</td><td>Alto</td><td><span class="chip c-bad">No</span></td></tr>
+          <tr><td>Encauzamiento río Elqui, Vicuña</td><td>Medio</td><td><span class="chip c-bad">No</span></td></tr>
+          <tr><td>Plataforma de alerta y monitoreo hidrológico</td><td>Medio-alto</td><td><span class="chip c-bad">No</span></td></tr>
+          <tr><td>Google Flood Hub</td><td>Bajo</td><td><span class="chip c-warn">Sin detalle local</span></td></tr>
+          <tr><td>Defensas acceso oriente, puente Ing. Díaz Ossa</td><td>Alto</td><td><span class="chip c-bad">No</span></td></tr>
+          <tr><td><b>Levantamiento UAV (Título) + modelo y ElquiAlerta (Innovación III)</b></td><td class="mono" id="prop-cost"></td><td><span class="chip c-warn">Propuesto · pendiente de validar</span></td></tr>
+        </tbody></table></div>
+      <div class="sliders" style="grid-template-columns:1fr 1fr">
+        <label class="sl" for="pp"><span>Personas consideradas (supuesto) <b class="mono" id="pp-v"></b></span><input id="pp" type="range" min="1000" max="10000" step="500" value="5000"></label>
+        <div class="stats" style="grid-template-columns:1fr 1fr"><div><b id="ppc"></b><span>cociente ilustrativo por persona</span></div><div><b id="pp-uf"></b><span>equivalente aprox. en UF</span></div></div>
+      </div>
+      <p class="src">Las ~5.000 personas citadas corresponden al contexto comunal: no se acredita que estén cubiertas por el tramo levantado. El cociente es ilustrativo y solo incluye el levantamiento de esta calculadora. Falta sumar el modelo hidráulico y la operación de ElquiAlerta. UF referencial editable en el código: $40.000.</p>
+    </div>
+  </figure>
+</section>
+
+<section class="closing">
+  <span class="eyebrow">Síntesis para la entrega de Innovación III</span>
+  <h2 style="font-size:30px">Cómo encajan los resultados</h2>
+  <ul>
+    <li><b>Encajan en una secuencia de trabajo.</b> El Título entrega el terreno medido (MDT, ortomosaico, geodatabase amarrada a la DOH). Innovación III propone convertir esos insumos en escenarios de inundación, manzanas expuestas y avisos por hogar con ElquiAlerta.</li>
+    <li><b>La tesis aporta evidencia para varios hallazgos del curso:</b> necesidad cartográfica, unidades censales, alcance académico y priorización territorial. Las comparaciones con otras plataformas requieren verificación adicional.</li>
+    <li><b>Tres ajustes antes de entregar:</b> medir el lecho sumergido antes de modelar, unificar el sistema de referencia (EPSG:32719 o 20049) y respaldar o quitar el “60 % menos costo” de la Ficha 8.</li>
+    <li><b>Pendiente técnico:</b> puntos de chequeo independientes para medir el error del MDT. Explicar el traslape frontal de 70 % (DOH pide 80 %) y la reproyección de 1,21 px.</li>
+    <li><b>Pendiente económico:</b> reemplazar los valores EJEMPLO por cotizaciones y sumar el costo del modelo hidráulico y de ElquiAlerta.</li>
+  </ul>
+</section>
+<section class="sources-v2" id="fuentes-v2"><h3>Fuentes y alcance de la versión</h3><ol><li>Proyecto de Título, Capítulo 2: alcance (p. 76), población y unidades censales (pp. 72 y 87), cobertura (p. 128), control GNSS (pp. 135–137), procesamiento (p. 138) y limitaciones del lecho (p. 145). Datos contrastados con el PDF local en la revisión previa.</li><li>La página conserva las cifras del ajuste publicadas. En PC4, la operación h − N difiere en 1 mm de la elevación reportada; se mantiene el valor de la tabla fuente.</li><li>Las cifras del presupuesto son supuestos editables de la página original; no son precios actualizados ni una cotización.</li></ol><p><b>Continuidad con EcoPoint:</b> se conserva la arquitectura existente de API, panel, aplicación móvil y tipos compartidos. Esta página no modifica módulos, dependencias, contratos ni bases de datos. No conecta con la API ni envía alertas.</p><div class="bottom-links"><a class="action" href="elqui-titulo-innovacion.html">Consultar página original</a><a class="action" href="../01_Pagina_Conceptos_Clave/conceptos-clave-innovacion-iii.html">Abrir conceptos del curso</a><a class="action" href="../02_ElquiAlerta/docs/04_INTEGRACION_TITULO.md">Documento de integración</a></div></section><footer>Versión de diseño 02 · 17 noviembre 2026. Entrega de Innovación III. Fuentes del curso: Fichas 1–12, página “Cinco claves del Elqui” y prototipo ElquiAlerta. Fuentes del Título: “Caracterización geomática y análisis territorial del río Elqui en la comuna de Vicuña”, Cap. 2 (22-10-2026), y Seminario de título 2024 “Base geomática integral, Altos Los Porotitos”, Cap. III. Profesor guía: Eduardo Araya Vidal.</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a,p)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);if(p)p.appendChild(n);return n};
+const txt=(p,x,y,s,a={})=>{const t=el("text",{x,y,"font-family":"Segoe UI, Arial, sans-serif","font-size":11,fill:"var(--muted)",...a},p);t.textContent=s;return t};
+const f=(v,d=2)=>v.toLocaleString("es-CL",{minimumFractionDigits:d,maximumFractionDigits:d});
+const clp=v=>"$"+Math.round(v).toLocaleString("es-CL");
+
+/* ── Datos reales (Cap. 2, Ilustraciones 160 y 161) ── */
+const PC=[
+ {id:"PC1",N:6675557.477,E:333956.656,h:629.603,und:33.131,H:596.472,sh:.002,su:.003,len:887.1,dur:"10:29",ep:629,sat:17,pdop:1.384,rms:.003},
+ {id:"PC2",N:6675494.066,E:334182.097,h:633.450,und:33.169,H:600.281,sh:.002,su:.002,len:655.6,dur:"10:04",ep:604,sat:17,pdop:1.574,rms:.002},
+ {id:"PC3",N:6675428.571,E:334351.003,h:635.000,und:33.198,H:601.802,sh:.002,su:.002,len:483.6,dur:"10:13",ep:613,sat:16,pdop:1.718,rms:.001},
+ {id:"PC4",N:6675380.982,E:334664.934,h:637.457,und:33.249,H:604.207,sh:.001,su:.002,len:176.9,dur:"13:58",ep:838,sat:14,pdop:1.556,rms:.001},
+ {id:"PC5",N:6675390.380,E:334911.207,h:640.731,und:33.287,H:607.444,sh:.002,su:.002,len:86.8,dur:"13:17",ep:797,sat:15,pdop:1.447,rms:.001},
+ {id:"PC6",N:6675524.953,E:335124.854,h:645.656,und:33.312,H:612.344,sh:.002,su:.002,len:305.1,dur:"10:15",ep:615,sat:15,pdop:1.725,rms:.001},
+ {id:"PC7",N:6675733.948,E:335670.772,h:652.280,und:33.386,H:618.894,sh:.002,su:.002,len:889.4,dur:"10:33",ep:633,sat:16,pdop:1.642,rms:.002}];
+
+
+/* Distribución UTM: envolvente esquemática, no cauce ni inundación. */
+(function drawAtlas(){const s=$("#hero-map"),X=e=>55+(e-PC[0].E)/(PC[6].E-PC[0].E)*490,Y=n=>245-(n-6675380.982)/352.966*100;const pts=PC.map(p=>X(p.E)+","+Y(p.N)).join(" ");s.innerHTML='<defs><pattern id="atlas-grid" width="35" height="35" patternUnits="userSpaceOnUse"><path d="M35 0H0V35" fill="none" stroke="#d4e2e8" stroke-width="0.7"/></pattern></defs><rect width="600" height="370" fill="url(#atlas-grid)"/>';[96,66,36].forEach((w,i)=>el("polyline",{points:pts,fill:"none",stroke:["#d9e6e9","#c9dce3","#b5d0dc"][i],"stroke-width":w,"stroke-linecap":"round","stroke-linejoin":"round"},s));el("polyline",{points:pts,fill:"none",stroke:"#5d8ba2","stroke-width":1.5,"stroke-dasharray":"4 5"},s);PC.forEach((p,i)=>{el("circle",{cx:X(p.E),cy:Y(p.N),r:i===3?9:6,fill:i===3?"#195e88":"#fff",stroke:"#195e88","stroke-width":2},s);txt(s,X(p.E),Y(p.N)-20,p.id,{"text-anchor":"middle",fill:"#163449","font-size":13});});el("path",{d:"M555 65V30m-5 8 5-8 5 8",stroke:"#163449",fill:"none"},s);txt(s,555,22,"N",{"text-anchor":"middle",fill:"#163449"});txt(s,25,340,"Distribution des points",{fill:"#516878"}).textContent="Distribución relativa de puntos · envolvente ilustrativa";})();
+
+/* ── Parte 1: cadena ── */
+const STAGES=[
+ {p:"tit",n:"Control geodésico",s:"LE-12 → Base PPK → PC1–PC7",in:["Monolito LE-12 de la DOH (cota nivelada)","Plan de observación en GNSS Planning (máscara 15°)","Receptores Topcon HiPer SR"],out:["Base PPK y 7 puntos de apoyo","RMS 1–3 mm, σ milimétrica","WGS 84 / UTM 19S (EPSG:32719)"],src:"Título · Cap. 2, Planificación geodésica"},
+ {p:"tit",n:"Vuelo UAV-PPK",s:"Mavic 3E · 110 m · 70/70 %",in:["Polígono KMZ del tramo (Google Earth)","DJI Pilot 2, 3 baterías","Trayectorias corregidas en Emlid Studio"],out:["Imágenes georreferenciadas de 1,43 km²","GSD ≈ 2,9 cm/píxel"],src:"Título · Cap. 2, Planificación UAV-PPK"},
+ {p:"tit",n:"MDT y geodatabase",s:"Punto de traspaso",h:true,in:["Metashape: 100 % alineación, reproyección 1,21 px","ArcGIS Pro ModelBuilder: Classify LAS Ground (Conservative)"],out:["Nube clasificada y MDT","Ortomosaico, curvas, pendientes","Geodatabase para SECPLAN"],src:"Título · Cap. 2, Procesamiento en ArcGIS Pro",gap:"Falta el lecho sumergido: la fotogrametría no ve bajo el agua."},
+ {p:"inn",n:"Modelación hidráulica 2D",s:"HEC-RAS / Iber",in:["MDT del título + batimetría del lecho","Caudales por período de retorno (T = 10, 50, 100)","Rugosidad de Manning por cobertura (ortomosaico)"],out:["Rásters de profundidad y velocidad por escenario","Zona inundable y fajas marginales"],src:"Innovación III · Fichas 7, 8 y 10; curso HEC-RAS e Iber (módulos 5 a 8)"},
+ {p:"inn",n:"Exposición y priorización",s:"Manzanas expuestas",in:["Profundidad por escenario","Manzanas Censo 2024 (atributo n_per)","Red vial, albergues y observación AEIOU"],out:["Manzanas con agua y profundidad máxima","Mapa de priorización para SECPLAN"],src:"Innovación III · Fichas 4, 9 y 10 + priorización territorial del Título"},
+ {p:"inn",n:"Alerta por manzana",s:"ElquiAlerta",in:["Exposición por manzana (block_exposures)","Caudal DGA vs. umbrales","Vecinos registrados por manzana"],out:["Mensaje por hogar: cuánta agua, ruta y albergue","Confirmación “Estoy a salvo / Necesito ayuda”","Casos priorizados para brigadas"],src:"Innovación III · 02_ElquiAlerta"}];
+let st=2;
+function drawPipe(){
+  $("#pipe").innerHTML=STAGES.map((s,i)=>`<button class="stage" data-p="${s.p}" data-i="${i}" aria-pressed="${i===st}" ${s.h?'style="outline:2px dashed var(--gcp);outline-offset:3px"':""}><span class="who">${s.p==="tit"?"Proyecto de Título":"Innovación III"} · ${i+1}</span><b>${s.n}</b><small>${s.s}</small></button>`).join("");
+  $$("#pipe .stage").forEach(b=>b.onclick=()=>{st=+b.dataset.i;drawPipe();$("#pipe .stage[data-i=\""+st+"\"]").focus()});
+  const s=STAGES[st];
+  $("#sdetail").innerHTML=`<h3>${st+1}. ${s.n}</h3><div><span class="eyebrow">Recibe</span><ul>${s.in.map(x=>`<li>${x}</li>`).join("")}</ul></div><div><span class="eyebrow">Entrega</span><ul>${s.out.map(x=>`<li>${x}</li>`).join("")}</ul>${s.gap?`<p class="chip c-bad" style="display:inline-block;margin-top:8px;white-space:normal">${s.gap}</p>`:""}</div><div><span class="eyebrow">Fuente</span><p style="font-size:14.5px;margin-top:4px">${s.src}</p></div>`;
+}
+drawPipe();
+
+/* ── Parte 2: encaje ── */
+const FIT=[
+ ["Confirma","Ficha 9 · “Vacío cartográfico local”: faltan insumos topográficos de alta resolución.","Para el contexto comunal solo había un DEM ALOS PALSAR de 12,5 m (IDE) y “no se dispone de información LiDAR de alta resolución para el sector de Vicuña”.","Citar ambos documentos juntos en el informe de Innovación III."],
+ ["Precisa","Ficha 8 · Resolución “< 5 m” con drones de 5–10 cm/píxel.","GSD estimado ≈ 2,9 cm/píxel a 110 m sobre 1,43 km² del tramo urbano.","Actualizar la cifra en la Ficha 8 y en la página de conceptos."],
+ ["Precisa","Ficha 6 · Araya: “un error de medio metro en el DEM puede subestimar o sobreestimar zonas inundables”.","Puntos de control con RMS de 1–3 mm y σU de 2–3 mm. La exactitud externa del MDT todavía no se mide.","Agregar puntos de chequeo independientes y reportar el error vertical del MDT."],
+ ["Tensiona","Fichas 7 y 10 · La modelación 2D depende de la precisión de la topografía y es la idea priorizada.","FODA del Título: la fotogrametría no registra el fondo sumergido. El levantamiento del lecho con estación total queda “para una etapa posterior”.","Coordinar con el Título la medición del lecho antes de correr HEC-RAS."],
+ ["Precisa","Ficha 8 · Evacuaciones preventivas en 80 hogares no protegidos.","El Plan Comunal RRD Vicuña 2023–2025 estima ~5.000 personas expuestas y registra la crecida de 1997 con daños a infraestructura.","Usar ambas cifras: 80 hogares como evidencia reciente y 5.000 personas como dimensión del problema."],
+ ["Confirma","Ficha 4 · AEIOU: Marquesa, Nueva Talcuna y El Arrayán junto al cauce.","En Marquesa “algunos cursos atraviesan o se aproximan directamente a sectores ocupados”. El Censo 2024 da población por manzana (n_per): Marquesa 56, El Arrayán 22, Vicuña Sur 1.148.","Vincular n_per mediante código censal y geometría. Son unidades seleccionadas, no totales de las localidades."],
+ ["Confirma","Ficha 7 · Legal: los resultados académicos no deben presentarse como delimitación oficial.","El Título se limita a caracterizar, “sin atribuir a los resultados un alcance de evaluación oficial del riesgo”.","Mantener la etiqueta “escenario no validado” en mapas y en ElquiAlerta."],
+ ["Confirma","Ficha 10 · Prioridad alta: modelación 2D más mapas fáciles de leer.","El Título planifica una “cartografía de priorización territorial” para SECPLAN en ArcGIS Pro.","Unir criterios: geomorfología y cambios del Título más exposición por manzana de Innovación III."],
+ ["Tensiona","ElquiAlerta · Las manzanas se importan en GeoJSON (EPSG:4326).","El levantamiento usa WGS 84 / UTM 19S (EPSG:32719); los estudios del Cap. 1–2 usan SIRGAS-Chile / UTM 19S (EPSG:20049). LE-12 no declara época SIRGAS.","Elegir un solo marco y documentar la transformación al importar."],
+ ["Tensiona","Ficha 8 · “Costos 60 % menores a estudios tradicionales”.","El Título aún no tiene capítulo económico; el primer número es la calculadora de esta página.","Respaldar el 60 % con cotizaciones o quitarlo de la ficha."],
+ ["Tensiona","Ficha 12 · Google Flood Hub “carece de la alta resolución topográfica (DEM detallado)”.","El Título plantea un MDT local; esto no verifica por sí solo las capacidades o limitaciones de otra plataforma.","Contrastar la comparación con documentación de la plataforma y criterios equivalentes."],
+ ["Confirma","Fichas 3 y 4 · La Ruta 41-CH es el eje estructurante y se corta con quebradas.","El estudio de geomensura la define como el principal eje de acceso; el tramo levantado termina en el puente de la Ruta 41.","Incluir la Ruta 41-CH como capa crítica en la priorización."]];
+const FC={Confirma:"c-ok",Precisa:"c-warn",Tensiona:"c-bad"};
+let ff="all";
+function drawFit(){
+  $("#fit").innerHTML=FIT.filter(r=>ff==="all"||r[0]===ff).map(([s,i,t,todo])=>`<div class="fit-row"><div><div class="k i">Innovación III dice</div><p>${i}</p></div><div><div class="k t">El Título muestra</div><p>${t}</p></div><div><span class="chip ${FC[s]}">${s}</span></div><p class="todo"><b>Qué hacer:</b> ${todo}</p></div>`).join("");
+  const c=k=>FIT.filter(r=>r[0]===k).length;
+  $("#fit-sum").innerHTML=`<span class="chip c-ok">${c("Confirma")} confirman</span><span class="chip c-warn">${c("Precisa")} precisan</span><span class="chip c-bad">${c("Tensiona")} tensionan</span>`;
+  $$("#fit-f button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===ff));
+}
+$$("#fit-f button").forEach(b=>b.onclick=()=>{ff=b.dataset.f;drawFit()});drawFit();
+
+/* costo por persona expuesta */
+const UF=40000;
+function perPerson(){const p=+$("#pp").value,t=window.__tot||0;$("#pp-v").textContent=p.toLocaleString("es-CL");
+  $("#ppc").textContent=clp(t/p);$("#pp-uf").textContent=(t/p/UF).toLocaleString("es-CL",{maximumFractionDigits:3})+" UF";
+  $("#prop-cost").textContent=clp(t)+" (levantamiento)";}
+$("#pp").addEventListener("input",perPerson);
+
+/* ── 1. Alturas ── */
+let cur=0;
+$("#pc-sel").innerHTML=PC.map((p,i)=>`<button data-i="${i}" aria-pressed="${i===0}">${p.id}</button>`).join("");
+$$("#pc-sel button").forEach(b=>b.onclick=()=>{cur=+b.dataset.i;drawHeights();drawProfile()});
+function drawHeights(){
+  const s=$("#heights"),p=PC[cur];s.innerHTML="";
+  $$("#pc-sel button").forEach((b,i)=>b.setAttribute("aria-pressed",i===cur));
+  const Y=v=>230-(v)*0.32; // escala: 0 m (elipsoide) → 230
+  // elipsoide, geoide, terreno
+  el("path",{d:"M30 230 Q320 236 610 230",stroke:"var(--geo)","stroke-width":2,fill:"none"},s);
+  txt(s,34,248,"Elipsoide WGS 84 (h = 0)",{fill:"var(--geo)"});
+  const gy=Y(p.und*2.2);
+  el("path",{d:`M30 ${gy+6} C 200 ${gy-10}, 420 ${gy+14}, 610 ${gy-2}`,stroke:"var(--ok)","stroke-width":2,"stroke-dasharray":"6 4",fill:"none"},s);
+  txt(s,34,gy-6,"Geoide EGM2008 (≈ nivel medio del mar)",{fill:"var(--ok)"});
+  const ty=40;
+  el("path",{d:`M30 ${ty+30} L180 ${ty+18} L260 ${ty+6} L330 ${ty} L420 ${ty+10} L610 ${ty+26} L610 22 L30 22 Z`,fill:"color-mix(in oklab, var(--terrain) 22%, transparent)",stroke:"none"},s);
+  el("path",{d:`M30 ${ty+30} L180 ${ty+18} L260 ${ty+6} L330 ${ty} L420 ${ty+10} L610 ${ty+26}`,stroke:"var(--terrain)","stroke-width":2.5,fill:"none"},s);
+  txt(s,450,ty+40,"Terreno",{fill:"var(--terrain)"});
+  // punto
+  const px=330;
+  const g=el("g",{transform:`translate(${px},${ty})`},s);
+  el("rect",{x:-7,y:-1.5,width:14,height:3,fill:"var(--gcp)",transform:"rotate(45)"},g);el("rect",{x:-7,y:-1.5,width:14,height:3,fill:"var(--gcp)",transform:"rotate(-45)"},g);
+  txt(s,px+12,ty-6,p.id,{fill:"var(--gcp)","font-weight":600,"font-size":13});
+  const geoAt=gy+2;
+  // cotas
+  const arrow=(x,y1,y2,c,l1,l2)=>{el("line",{x1:x,x2:x,y1,y2,stroke:c,"stroke-width":2},s);
+    el("path",{d:`M${x-4} ${y1+7} L${x} ${y1} L${x+4} ${y1+7}`,stroke:c,fill:"none","stroke-width":2},s);
+    el("path",{d:`M${x-4} ${y2-7} L${x} ${y2} L${x+4} ${y2-7}`,stroke:c,fill:"none","stroke-width":2},s);
+    txt(s,x+8,(y1+y2)/2,l1,{fill:c,"font-weight":600,"font-size":12});txt(s,x+8,(y1+y2)/2+14,l2,{fill:c})};
+  arrow(px-110,ty+4,230,"var(--geo)",`h = ${f(p.h,3)} m`,"elipsoidal (GNSS)");
+  arrow(px+70,ty+4,geoAt,"var(--ink)",`H = ${f(p.H,3)} m`,"ortométrica");
+  arrow(px+250,geoAt+2,230,"var(--ok)",`N = ${f(p.und,3)} m`,"ondulación");
+  $("#pc-stats").innerHTML=`<div><b>${f(p.E,1)}</b><span>Este (m)</span></div><div><b>${f(p.N,1)}</b><span>Norte (m)</span></div><div><b>${f(p.h,3)} − ${f(p.und,3)}</b><span>h − N</span></div><div><b>${f(p.H,3)} m</b><span>H · σU ${f(p.su*100,1)} cm</span></div>`;
+}
+function drawProfile(){
+  const s=$("#profile");s.innerHTML="";
+  const E0=333900,E1=335720,H0=592,H1=622;
+  const X=e=>50+(e-E0)/(E1-E0)*570,Y=h=>175-(h-H0)/(H1-H0)*150;
+  for(let h=595;h<=620;h+=5){el("line",{x1:50,x2:620,y1:Y(h),y2:Y(h),stroke:"var(--line)"},s);txt(s,44,Y(h)+4,h+"",{"text-anchor":"end"})}
+  let d="",a=`M${X(PC[0].E)} 175`;PC.forEach((p,i)=>{d+=(i?" L":"M")+X(p.E)+" "+Y(p.H);a+=` L${X(p.E)} ${Y(p.H)}`});a+=` L${X(PC[6].E)} 175 Z`;
+  el("path",{d:a,fill:"color-mix(in oklab, var(--terrain) 18%, transparent)"},s);
+  el("path",{d,stroke:"var(--terrain)","stroke-width":2,fill:"none"},s);
+  PC.forEach((p,i)=>{const g=el("g",{transform:`translate(${X(p.E)},${Y(p.H)})`,style:"cursor:pointer"},s);
+    el("circle",{r:i===cur?7:4.5,fill:i===cur?"var(--gcp)":"var(--paper)",stroke:"var(--gcp)","stroke-width":2},g);
+    txt(g,0,-11,p.id,{"text-anchor":"middle",fill:i===cur?"var(--gcp)":"var(--muted)","font-weight":i===cur?600:400});
+    g.addEventListener("click",()=>{cur=i;drawHeights();drawProfile()})});
+  txt(s,620,196,"Este (m) · aguas arriba →",{"text-anchor":"end"});txt(s,50,14,"H (m)");
+}
+drawHeights();drawProfile();
+
+/* ── 2. GNSS ── */
+$("#gnss-tbody").innerHTML=PC.map(p=>`<tr><td class="mono">Base → ${p.id}</td><td class="n">${f(p.len,1)}</td><td class="n">${p.dur}</td><td class="n">${p.sat}</td><td class="n">${f(p.pdop,3)}</td><td class="n">${f(p.rms,3)}</td><td><span class="chip c-ok">Ajustado</span></td></tr>`).join("");
+let metric="pdop";
+$$("#gnss-sel button").forEach(b=>b.onclick=()=>{metric=b.dataset.m;$$("#gnss-sel button").forEach(x=>x.setAttribute("aria-pressed",x===b));drawGnss()});
+function drawGnss(){
+  const s=$("#gnss");s.innerHTML="";
+  if(metric==="len"){
+    const X=l=>60+l/1000*540,Y=m=>220-(m-9)/(15-9)*190;
+    for(let m=10;m<=14;m+=2){el("line",{x1:60,x2:610,y1:Y(m),y2:Y(m),stroke:"var(--line)"},s);txt(s,54,Y(m)+4,m+" min",{"text-anchor":"end"})}
+    for(let l=0;l<=1000;l+=250){txt(s,X(l),238,l+" m",{"text-anchor":"middle"})}
+    el("rect",{x:X(0),y:Y(15),width:X(900)-X(0),height:Y(10)-Y(15),fill:"color-mix(in oklab, var(--ok) 10%, transparent)"},s);
+    txt(s,X(900)-6,Y(14.6),"vectores < 900 m · sesión ≥ 10 min · doble frecuencia",{"text-anchor":"end",fill:"var(--ok)"});
+    PC.forEach(p=>{const[mm,ss]=p.dur.split(":").map(Number),m=mm+ss/60;el("circle",{cx:X(p.len),cy:Y(m),r:6,fill:"var(--gcp)"},s);txt(s,X(p.len)+9,Y(m)+4,p.id,{fill:"var(--ink)"})});
+    $("#gnss-note").textContent="La ETT-DOH pide más tiempo cuanto más largo es el vector. El capítulo considera adecuadas estas sesiones en la p. 137, pero la p. 135 menciona una hora. La contradicción debe resolverse antes de afirmar cumplimiento.";
+    return;
+  }
+  const M={pdop:{v:p=>p.pdop,max:3.5,th:3,lab:"límite PDOP ≤ 3",u:"",note:"PDOP entre 1,38 y 1,73: muy por debajo del límite 3. Buena geometría satelital en el valle, pese al relieve."},
+           rms:{v:p=>p.rms*100,max:2.5,th:2,lab:"tolerancia ETT-DOH 2 cm",u:" cm",note:"RMS entre 0,1 y 0,3 cm frente a una tolerancia de 2 cm. Son indicadores de precisión interna; no prueban exactitud externa ni certifican cumplimiento normativo."},
+           sat:{v:p=>p.sat,max:20,th:8,lab:"mínimo 8 satélites",u:"",note:"Entre 14 y 17 satélites combinando GPS y GLONASS: el capítulo menciona mínimos de 4 y 8 en secciones distintas; ese criterio debe conciliarse."}}[metric];
+  const X=i=>70+i*78,Y=v=>220-v/M.max*190;
+  for(let k=0;k<=4;k++){const v=M.max*k/4;el("line",{x1:60,x2:620,y1:Y(v),y2:Y(v),stroke:"var(--line)"},s);txt(s,54,Y(v)+4,(metric==="sat"?Math.round(v):f(v,1)),{"text-anchor":"end"})}
+  el("line",{x1:60,x2:620,y1:Y(M.th),y2:Y(M.th),stroke:metric==="sat"?"var(--warn)":"var(--bad)","stroke-width":2,"stroke-dasharray":"6 4"},s);
+  txt(s,616,Y(M.th)-6,M.lab,{"text-anchor":"end",fill:metric==="sat"?"var(--warn)":"var(--bad)","font-weight":600});
+  PC.forEach((p,i)=>{const v=M.v(p);el("rect",{x:X(i)+8,y:Y(v),width:44,height:220-Y(v),fill:"var(--geo)",rx:2},s);
+    txt(s,X(i)+30,Y(v)-6,(metric==="sat"?v:f(v,metric==="rms"?1:2))+M.u,{"text-anchor":"middle",fill:"var(--ink)","font-weight":600});
+    txt(s,X(i)+30,238,p.id,{"text-anchor":"middle"})});
+  $("#gnss-note").textContent=M.note;
+}
+drawGnss();
+
+/* ── 3. Vuelo ── */
+const SW=17.3,FOC=12.29,PXW=5280,PXH=3956,AREA=1.43e6;
+const base=(()=>{const g=0.0242,sp=PXW*g*(1-0.7);return{k:44320/(AREA/sp),speed:44320/(59.97*60)}})();
+function flight(){
+  const H=+$("#fh").value,fo=+$("#ff").value/100,so=+$("#fs").value/100;
+  $("#fh-v").textContent=H+" m";$("#ff-v").textContent=Math.round(fo*100)+" %";$("#fs-v").textContent=Math.round(so*100)+" %";
+  const gsd=SW*H/(FOC*PXW); // m/px
+  const spacing=PXW*gsd*(1-so),lines=AREA/spacing,dist=base.k*lines,interval=PXH*gsd*(1-fo);
+  const photos=Math.round(lines/interval),min=dist/base.speed/60,batt=Math.ceil(min/20);
+  $("#flight-stats").innerHTML=`<div><b>${f(gsd*100,2)} cm</b><span>GSD por píxel</span></div><div><b>${f(dist/1000,1)} km</b><span>distancia de vuelo</span></div><div><b>${photos.toLocaleString("es-CL")}</b><span>fotos aprox.</span></div><div><b>${Math.round(min)} min · ${batt}</b><span>tiempo · baterías</span></div>`;
+  const ck=[[gsd*100<=3.0,`GSD ≤ 3,0 cm (escala 1:500)`],[fo>=0.8,`Frontal ≥ 80 % (DOH)`],[so>=0.4,`Lateral ≥ 40 % (DOH)`],[batt<=3,`Cabe en 3 baterías`]];
+  $("#flight-checks").innerHTML=ck.map(([ok,t])=>`<span class="chip ${ok?"c-ok":"c-bad"}">${ok?"✓":"✗"} ${t}</span>`).join("");
+  // dibujo de huellas
+  const s=$("#overlap");s.innerHTML="";
+  const w=130*(H/110),h=w*PXH/PXW,stepX=w*(1-fo),stepY=h*(1-so);
+  txt(s,10,16,"Huellas de 3 fotos por línea, 2 líneas de vuelo (vista en planta)");
+  for(let r=0;r<2;r++)for(let c=0;c<3;c++){
+    el("rect",{x:40+c*stepX,y:30+r*stepY,width:w,height:h,fill:r?"color-mix(in oklab, var(--gcp) 14%, transparent)":"color-mix(in oklab, var(--geo) 14%, transparent)",stroke:r?"var(--gcp)":"var(--geo)","stroke-width":1.5},s)}
+  el("line",{x1:30,x2:40+2*stepX+w+10,y1:30+h/2,y2:30+h/2,stroke:"var(--geo)","stroke-dasharray":"4 4"},s);
+  txt(s,40+2*stepX+w+16,30+h/2+4,"línea 1",{fill:"var(--geo)"});
+  el("line",{x1:30,x2:40+2*stepX+w+10,y1:30+stepY+h/2,y2:30+stepY+h/2,stroke:"var(--gcp)","stroke-dasharray":"4 4"},s);
+  txt(s,40+2*stepX+w+16,30+stepY+h/2+4,"línea 2",{fill:"var(--gcp)"});
+}
+["#fh","#ff","#fs"].forEach(i=>$(i).addEventListener("input",flight));flight();
+
+/* ── 4. Control de calidad y riesgos ── */
+const QC=[
+ ["ok","PDOP ≤ 3 en todas las sesiones","Obtenido 1,38 – 1,73"],
+ ["ok","RMS de vectores ≤ 2 cm (ETT-DOH)","Obtenido 0,1 – 0,3 cm"],
+ ["ok","σ ≤ 1 cm planimetría y ≤ 2 cm altimetría","σHz 0,1–0,2 cm · σU 0,2–0,3 cm"],
+ ["warn","Consistencia de los criterios de sesiones y satélites","Las pp. 135 y 137 del capítulo presentan criterios diferentes; conciliar antes de declarar cumplimiento."],
+ ["bad","Redundancia: figuras cerradas o repetición","Un solo vector por punto; el registro de alturas no sustituye la redundancia"],
+ ["ok","GSD efectivo ≤ 3,0 cm/px","≈ 2,9 cm/px a 110 m"],
+ ["bad","Traslape frontal ≥ 80 % (ETT-DOH)","70 %: decisión por 3 baterías"],
+ ["ok","Traslape lateral ≥ 40 % (ETT-DOH)","70 %, compensa parcialmente"],
+ ["ok","Alineación de imágenes","100 % de las imágenes orientadas"],
+ ["warn","Error de reproyección < 1 px","1,21 px: levemente sobre el óptimo"],
+ ["warn","≥ 95 % de centros de foto con solución FIX (PPK)","Pendiente de verificar en Emlid Studio"],
+ ["warn","Exactitud externa con puntos de chequeo independientes","Aún no evaluada"]];
+const QL={ok:"Documentado",warn:"Por verificar",bad:"Por revisar"},QCOL={ok:"var(--ok)",warn:"var(--warn)",bad:"var(--bad)"};
+let qf="all";
+function drawQc(){$("#qc").innerHTML=QC.filter(q=>qf==="all"||q[0]===qf).map(([s,t,d])=>`<div class="qc-row"><span class="dot" style="background:${QCOL[s]}"></span><span><b style="font-weight:600">${t}</b><small>${d}</small></span><span class="chip c-${s}">${QL[s]}</span></div>`).join("");
+  $$("#qc-f button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===qf))}
+$$("#qc-f button").forEach(b=>b.onclick=()=>{qf=b.dataset.f;drawQc()});drawQc();
+const RISK=[
+ {t:"Viento durante el vuelo",lv:"Alto",st:"Ocurrió",c:"Ráfagas y cambios de viento.",i:"Pérdida de estabilidad, desvío de trayectoria y fotos menos nítidas.",m:"Revisar pronóstico y límites del fabricante y fijar criterios de suspensión. En terreno se subió a 110 m y se continuó."},
+ {t:"Terreno irregular e inestable",lv:"Alto",st:"Observado",c:"Piedras, material suelto, taludes.",i:"Caídas, lesiones y daño al instrumental.",m:"Reconocer rutas seguras, usar EPP y calzado de seguridad, no cargar equipo por superficies inestables."},
+ {t:"Marcas de control poco visibles",lv:"Medio-alto",st:"Ocurrió",c:"Poco contraste o tamaño inadecuado de la cruz.",i:"Errores al marcar los PC en Metashape y peor georreferenciación.",m:"Marcas de alto contraste y tamaño adecuado al GSD; verificar visibilidad desde el aire antes del vuelo."},
+ {t:"Geometría GNSS desfavorable",lv:"Alto",st:"Preventivo",c:"Relieve del valle, multitrayectoria.",i:"Mayor incertidumbre y precisión insuficiente.",m:"Planificar ventanas con GNSS Planning (máscara 15°, PDOP ≤ 3) y repetir observaciones si hace falta."},
+ {t:"Pérdida o corrupción de datos",lv:"Alto",st:"Preventivo",c:"Un solo dispositivo, sin copias.",i:"Repetir el terreno y perder trazabilidad.",m:"Conservar .tps/RINEX originales, copias en ubicaciones independientes y verificación al cierre de cada jornada."},
+ {t:"Acceso restringido a riberas",lv:"Medio",st:"Ocurrió",c:"Terrenos privados, accesos no habilitados.",i:"Retrasos y puntos que no se pueden ocupar.",m:"Reconocer accesos, gestionar autorizaciones y definir rutas alternativas."}];
+let ri=0;
+function drawRisk(){$("#risk").innerHTML=RISK.map((r,i)=>`<button data-i="${i}" aria-pressed="${i===ri}"><b>${r.t}</b><span class="row" style="gap:6px"><span class="chip ${r.lv.startsWith("Alto")?"c-bad":r.lv==="Medio"?"c-warn":"c-warn"}">Impacto ${r.lv.toLowerCase()}</span><span class="chip ${r.st==="Preventivo"?"c-ok":"c-warn"}">${r.st}</span></span></button>`).join("");
+  const r=RISK[ri];$("#risk-d").innerHTML=`<p><b>Causa:</b> ${r.c}</p><p><b>Impacto:</b> ${r.i}</p><p><b>Medida:</b> ${r.m}</p>`;
+  $$("#risk button").forEach(b=>b.onclick=()=>{ri=+b.dataset.i;drawRisk()})}
+drawRisk();
+
+/* ── 5. Presupuesto ── */
+// [id, etiqueta, valor, fuente: "s" seminario / tesis, "e" ejemplo editable, grupo]
+const IN=[
+ ["g","Recursos humanos"],
+ ["vh_geo","Ingeniero geomensor · valor hora",18000,"s"],["h_geo","Ingeniero geomensor · horas",40,"e"],
+ ["vh_dib","Dibujante · valor hora",9500,"s"],["h_dib","Dibujante · horas",24,"e"],
+ ["vh_ala","Alarife · valor hora",8000,"s"],["h_ala","Alarife · horas",9,"e"],
+ ["g","Instrumental (arriendo por día)"],
+ ["uav","UAV con módulo RTK/PPK",150000,"e"],["gnss","Par GNSS geodésico (base + rover)",120000,"e"],["dias","Días de terreno",1,"s"],
+ ["g","Operación"],
+ ["km","Distancia La Serena → Vicuña (km, ida)",62,"e"],["rend","Rendimiento camioneta (km/l)",10,"s"],["comb","Precio combustible ($/l)",1300,"e"],
+ ["pers","Personas en terreno",3,"s"],["col","Colación por persona ($)",4500,"e"],
+ ["g","Margen"],["imp","Imprevistos (%)",10,"e"],
+ ["g","Escenario estación total (para comparar)"],["et","Arriendo estación total por día",45000,"e"],["rendET","Rendimiento estación total (ha/día)",6,"e"]];
+$("#b-inputs").innerHTML=IN.map(r=>r[0]==="g"?`<div class="group">${r[1]}</div>`:`<label class="inp" for="b-${r[0]}"><span>${r[1]}<span class="${r[3]==="s"?"src2":"ex"}">${r[3]==="s"?"FUENTE":"EJEMPLO"}</span></span><input id="b-${r[0]}" type="number" min="0" step="any" value="${r[2]}"></label>`).join("");
+const v=id=>Math.max(0,+$("#b-"+id).value||0);
+function budget(){
+  const invalid=IN.filter(r=>r[0]!=="g").some(r=>{const n=$("#b-"+r[0]);return n.value.trim()===""||!Number.isFinite(+n.value)||+n.value<0;})||v("rend")<=0||v("rendET")<=0;
+  if(invalid){$("#b-total").textContent="—";$("#b-table").innerHTML="";$("#b-net").textContent="Completa todos los campos con números válidos. Los rendimientos deben ser mayores que cero.";$("#compare").innerHTML="";$("#compare-note").textContent="Comparación pendiente de datos válidos.";window.__tot=0;perPerson();$("#ppc").textContent="—";$("#pp-uf").textContent="—";$("#prop-cost").textContent="Pendiente";return;}
+  const rrhh=v("vh_geo")*v("h_geo")+v("vh_dib")*v("h_dib")+v("vh_ala")*v("h_ala");
+  const inst=(v("uav")+v("gnss"))*v("dias");
+  const trans=v("km")*2/Math.max(1,v("rend"))*v("comb")*v("dias");
+  const col=v("pers")*v("col")*v("dias");
+  const sub=rrhh+inst+trans+col,imp=sub*v("imp")/100,tot=sub+imp;
+  const rows=[["Recursos humanos (honorarios brutos)",rrhh],["Instrumental",inst],["Combustible (ida y vuelta)",trans],["Colaciones",col],[`Imprevistos ${f(v("imp"),0)} %`,imp]];
+  $("#b-table").innerHTML=rows.map(([t,x])=>`<tr><td>${t}</td><td class="n">${clp(x)}</td></tr>`).join("");
+  $("#b-total").textContent=clp(tot);window.__tot=tot;perPerson();
+  $("#b-net").textContent="Honorarios brutos. El tratamiento tributario no se calcula en esta versión.";
+  // Estación total: mismas horas de gabinete, terreno = días según rendimiento
+  const ha=AREA/1e4,dET=Math.ceil(ha/Math.max(0.1,v("rendET")));
+  const fieldDay=(v("vh_geo")+v("vh_ala"))*8;
+  const rrhhET=v("vh_geo")*Math.max(0,v("h_geo")-8*v("dias"))+v("vh_dib")*v("h_dib")+fieldDay*dET;
+  const totET=(rrhhET+(v("et")+v("gnss"))*dET+v("km")*2/Math.max(1,v("rend"))*v("comb")*dET+v("pers")*v("col")*dET)*(1+v("imp")/100);
+  drawCompare([["UAV-PPK",tot,v("dias")],["Estación total",totET,dET]]);
+  $("#compare-note").innerHTML=`Con estos supuestos, la estación total necesita <b>${dET} días</b> de terreno para ${f(ha,0)} ha y cuesta <b>${tot>0?f(totET/tot,1):"—"} veces</b> más. Los productos y alcances de ambos métodos deben compararse antes de interpretar la diferencia de costos. La comparación depende de estos supuestos; no acredita el ahorro del 60 %. Con costo UAV cero no se calcula la razón.`;
+}
+function drawCompare(d){
+  const s=$("#compare");s.innerHTML="";const mx=Math.max(1,...d.map(x=>x[1]));
+  d.forEach(([n,c,days],i)=>{const y=24+i*68,w=Math.max(4,c/mx*420);
+    txt(s,10,y+20,n,{fill:"var(--ink)","font-weight":600,"font-size":13});
+    el("rect",{x:130,y,width:w,height:30,fill:i?"var(--muted)":"var(--gcp)",rx:3},s);
+    txt(s,130+w+8,y+20,`${clp(c)} · ${days} día${days===1?"":"s"}`,{fill:"var(--ink)","font-size":12.5})});
+}
+$("#b-inputs").addEventListener("input",budget);const reset=document.createElement("button");reset.type="button";reset.className="action";reset.textContent="Restablecer valores";reset.style.marginTop="16px";$("#b-inputs").after(reset);reset.onclick=()=>{IN.filter(r=>r[0]!=="g").forEach(r=>$("#b-"+r[0]).value=r[2]);budget()};budget();
+})();
+</script>
+
+</body></html>

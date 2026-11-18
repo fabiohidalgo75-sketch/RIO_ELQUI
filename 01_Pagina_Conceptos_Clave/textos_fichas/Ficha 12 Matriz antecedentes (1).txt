@@ -1,0 +1,49 @@
+instrumento (b) | 1.1.5.1
+
+Matriz de antecedentes
+
+                     Variable 1:                          Variable 2:                                   Variable 3:                                Variable 4:                  Variable 5:
+
+                     Costo                             Tecnologia                             Aplicabilidad                           Capacidad de análisis                 Nivel de detalle
+                                                                                                                                      espacial y simulación                 topográfico local
+
+           Caso 1:   Presenta un costo alto, debido    Utiliza una tecnología de              Presenta alta aplicabilidad, ya         Es una obra de protección física      Se limita exclusivamente a los
+                     a que requiere la construcción    complejidad media, basada              que permite proteger                    que no corresponde a una              570 metros de la intervención,
+Proyecto de          de una obra física de             principalmente en la                   directamente sectores                   herramienta geomática. No             sin aportar una actualización
+Defensas             protección de                     construcción de un pretil y            habitacionales frente a posibles        permite modelar escenarios ni         topográfica del cauce para el
+Fluviales Río Elqui  aproximadamente 570 metros        revestimiento de enrocado.             crecidas y desbordes del río.           identificar/priorizar otros sectores  resto de la comuna.
+– Sector Ruta 5,     de longitud.                                                                                                     críticos del río.
+Desembocadura
+
+           Caso 2:   Presenta un costo medio,          Utiliza una tecnología de baja a       Presenta alta aplicabilidad,            Es una intervención directa en el     La información topográfica se
+                     debido a que requiere trabajos y  media complejidad, basada              debido a que permite ordenar el         terreno que no proporciona            concentra únicamente en los
+Encauzamiento        maquinaria para intervenir        principalmente en maquinaria y         cauce y disminuir problemas             capacidades de análisis               tramos específicos donde operó
+ del río Elqui,      directamente el cauce.            trabajos de modificación y             asociados al desplazamiento del         territorial ni simulación de          la maquinaria, sin entregar una
+                                                       ordenamiento del cauce.                agua.                                   futuras crecidas mediante             caracterización completa del río.
+comuna de                                                                                                                             software.
+Vicuña
+
+            Caso 3:  Presenta un costo medio-alto,     Presenta una alta incorporación        Presenta alta aplicabilidad, ya         Entrega datos puntuales de              Al depender de estaciones
+                     debido a que requiere             tecnológica, al utilizar               que permite monitorear las              caudal, pero no simula                  puntuales, no ofrece una
+Plataforma de        estaciones de monitoreo,          estaciones automatizadas,              condiciones del río y generar           visualmente el comportamiento           cartografía detallada que
+Alerta y Monitoreo   sistemas de comunicación y        monitoreo de caudales y niveles        alertas oportunas ante                  de la lámina de agua sobre el           identifique qué manzanas o
+Hidrológico de       mantenimiento.                    de agua y emisión de alertas.          aumentos importantes del                terreno ante distintos                  infraestructuras específicas se
+Crecidas                                                                                      caudal.                                 escenarios de riesgo.                   inundarían.
+
+         Caso 4:     Presenta un costo bajo para        Presenta una alta utilización de      Presenta una aplicabilidad media-       Utiliza IA para pronosticar           Al ser una plataforma de
+                     el usuario, debido a que           tecnología, debido al uso de          alta, ya que permite visualizar         inundaciones visualmente, pero        cobertura global, carece de la
+Google Food          permite acceder                    inteligencia artificial, información  información de inundaciones de          se basa en predicciones               alta resolución topográfica
+Hub                  gratuitamente a información y      hidrológica, meteorológica e          manera sencilla, aunque puede no        informativas que no permiten a        (DEM detallado) necesaria para
+                     pronósticos de inundación.         imágenes satelitales.                 entregar el nivel de detalle            los usuarios modelar escenarios       el análisis urbano específico en
+                                                                                              necesario para sectores específicos     personalizados o extremos.            Vicuña.
+        Caso 5:      Presenta un costo alto, debido    Presenta una tecnología de baja        de Vicuña.
+                     a que corresponde a una obra      a media complejidad, basada                                                    Al ser una barrera física, no          Se enfoca exclusivamente en la
+Defensas lluviales   física permanente destinada a     principalmente en barreras y                 Presenta alta aplicabilidad,      permite analizar el                    topografía del acceso oriente,
+del acceso oriente   proteger infraestructura y        obras de defensa fluvial.                    debido a que protege              comportamiento del agua,               sin permitir determinar
+de Vicuña - Puente   sectores urbanos.                                                              directamente el acceso oriente    calcular profundidades o               cartográficamente qué otros
+ingeniero Alfonso                                                                                   de Vicuña y ayuda a disminuir el  determinar velocidades del             sectores de Vicuña son
+Diaz Ossa                                                                                           riesgo de ingreso del río hacia   caudal bajo crecidas extremas.         vulnerables.
+                                                                                                    sectores urbanos.
+
+Integrantes:                                                                                  Curso:                                  Profesor:
+
