@@ -29,6 +29,7 @@ Página de presentación para Innovación III. Muestra cómo el Proyecto de Tít
 ├── css/estilos.css             estilos, tokens de color, modo oscuro e impresión
 ├── js/app.js                   toda la interactividad y los gráficos SVG
 ├── datos/datos.js              TODOS los datos de la web (window.ELQUI_DATA)
+├── img/productos/              12 imágenes (WebP + SVG) de la sección «Lo que entrega el Título»
 ├── LEEME.md                    este archivo
 ├── docs/
 │   ├── decisiones-de-diseno.md qué aportó cada revisor y qué se decidió

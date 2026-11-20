@@ -147,6 +147,14 @@ figure.cols2{margin:0}
 
 figure{margin:0;display:grid;gap:12px;min-width:0}
 figcaption{font-size:14.5px;color:var(--muted)}
+
+/* Productos del levantamiento */
+.productos .intro{font-size:17px;line-height:1.6}
+.prod-fig img{display:block;max-width:100%;height:auto;border-radius:4px;border:1px solid var(--line);background:#fff}
+.prod-fig figcaption strong{color:var(--ink)}
+.prod-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.prod-grid.two{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))}
+.prod-fig.perfil img{background:#fbfaf7;padding:6px}
 .panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-box);padding:16px;display:grid;gap:14px;min-width:0}
 .ptitle{font:600 19px/1.2 var(--f-head)}
 .svgbox{overflow-x:auto;min-width:0}

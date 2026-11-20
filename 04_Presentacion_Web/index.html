@@ -25,6 +25,7 @@
       <a href="#c1">1 Geodesia</a>
       <a href="#c2">2 GNSS</a>
       <a href="#c3">3 Vuelo</a>
+      <a href="#productos">Productos</a>
       <a href="#c4">4 Calidad</a>
       <a href="#c5">5 Economía</a>
       <a href="#costo-persona">Por persona</a>
@@ -172,6 +173,77 @@
     </div>
     <figcaption>Modelo calibrado con la planificación real: 1,43 km², 44,32 km y 60 min a 2,42 cm/px con 70/70 %. Supuesto: unos 20 min útiles por batería (3 baterías ≈ 60 min). Valores orientativos.</figcaption>
   </figure>
+</section>
+
+<!-- Productos del levantamiento -->
+<section class="band productos" id="productos" aria-labelledby="h-prod">
+  <h2 id="h-prod">Lo que entrega el Título</h2>
+  <p class="intro measure">Productos derivados del vuelo aerofotogramétrico (GSD 2,9 cm). Metashape genera por defecto el MDT a unas <b>4 veces el GSD</b>: 4 × 2,9 cm ≈ 11,6 cm, lo que explica el píxel final de <b>11,3 cm</b> del MDT. La ortofoto se exportó a 5 cm. Todas las imágenes son elaboración propia a partir de los archivos del Título, reducidas para la web.</p>
+
+  <figure class="prod-fig">
+    <img src="img/productos/01_mdt_sombreado.webp" alt="Sombreado del MDT del tramo completo del río Elqui con colores por altura, de 558 m aguas abajo a 594 m aguas arriba" loading="lazy" width="1800" height="604">
+    <figcaption><strong>MDT · píxel 11,3 cm</strong> · Sombreado (azimut 315°, altitud 45°) multiplicado por una rampa de altura · tramo completo, unos 3,2 km de cauce · WGS 84 / UTM 19S (EPSG 32719) · Elaboración propia, Metashape.</figcaption>
+  </figure>
+
+  <figure class="prod-fig">
+    <img src="img/productos/01b_mdt_sombreado_detalle.webp" alt="Detalle del MDT sombreado entre PC3 y PC4, con barras de grava, canales y la superficie lisa del agua; una línea discontinua marca el Corte 1" loading="lazy" width="1800" height="1011">
+    <figcaption><strong>Detalle del MDT</strong> · sector entre PC3 y PC4, 180 m de ancho · se distinguen barras de grava, bordes de terraza y canales secundarios. Las zonas lisas sin textura son la superficie del agua. La línea discontinua es el Corte 1.</figcaption>
+  </figure>
+
+  <figure class="prod-fig">
+    <img src="img/productos/02_curvas_ortofoto.webp" alt="Curvas de nivel cada 30 centímetros dibujadas sobre la ortofoto en un sector de 200 metros del cauce" loading="lazy" width="1800" height="990">
+    <figcaption><strong>Curvas de nivel cada 0,30 m sobre la ortofoto</strong> · maestras cada 1,5 m en naranjo · sector de 200 m entre PC2 y PC3. Las curvas siguen los bordes de las barras y de los canales que se ven en la imagen; sobre arbustos forman anillos, porque ahí la superficie incluye vegetación.</figcaption>
+  </figure>
+
+  <figure class="prod-fig">
+    <img src="img/productos/03_orto_general.webp" alt="Ortofoto completa del tramo con recuadros rojos que ubican los acercamientos del puente, de PC4, de las manzanas y del sector de curvas" loading="lazy" width="1800" height="719">
+    <figcaption><strong>Ortofoto general</strong> · 69.207 × 27.634 px a 5 cm (3,1 GB en el original), aquí reducida a ~1,9 m/px. Los recuadros ubican los acercamientos siguientes.</figcaption>
+  </figure>
+
+  <div class="prod-grid">
+    <figure class="prod-fig">
+      <img src="img/productos/04_orto_zoom_puente.webp" alt="Acercamiento de la ortofoto a 5 centímetros: puente sobre el río Elqui con el agua turbia y barras de grava" loading="lazy" width="1800" height="1011">
+      <figcaption><strong>Puente</strong> · 90 m de ancho a resolución completa (5 cm): se leen las juntas del tablero y las barandas.</figcaption>
+    </figure>
+    <figure class="prod-fig">
+      <img src="img/productos/05_orto_zoom_pc.webp" alt="Acercamiento a PC4: el círculo rojo, dibujado en sus coordenadas GNSS, cae sobre la marca del punto de control visible en la ortofoto" loading="lazy" width="1800" height="1011">
+      <figcaption><strong>PC4</strong> · el círculo está dibujado en la coordenada GNSS del punto (E 334.664,934 · N 6.675.380,982) y cae sobre la marca pintada en terreno: la ortofoto y el control geodésico calzan.</figcaption>
+    </figure>
+    <figure class="prod-fig">
+      <img src="img/productos/06_orto_zoom_manzana.webp" alt="Acercamiento a manzanas del sector norte del cauce: techos, una piscina, vehículos y calles" loading="lazy" width="1800" height="1011">
+      <figcaption><strong>Manzanas al norte del cauce</strong> · techos, vehículos y veredas separables. Es la escala a la que Innovación III asignará la exposición por manzana; esta imagen no indica que estas manzanas sean inundables.</figcaption>
+    </figure>
+  </div>
+
+  <h3 class="ptitle">Derivados del MDT · mismo sector del detalle (entre PC3 y PC4)</h3>
+  <div class="prod-grid">
+    <figure class="prod-fig">
+      <img src="img/productos/12_pendiente.webp" alt="Pendiente reclasificada en cuatro clases: plana 0 a 5 grados, suave 5 a 15, inclinada 15 a 30 y fuerte sobre 30" loading="lazy" width="1800" height="1011">
+      <figcaption><strong>Pendiente reclasificada</strong> · Slope en grados → Reclassify: 0–5° (1), 5–15° (2), 15–30° (3), &gt; 30° hasta 78,4° (4).</figcaption>
+    </figure>
+    <figure class="prod-fig">
+      <img src="img/productos/13_red_drenaje.webp" alt="Red de drenaje calculada con el método HAND, en líneas azules sobre el MDT sombreado en gris" loading="lazy" width="1800" height="1011">
+      <figcaption><strong>Red de drenaje (método HAND)</strong> · es la red desde la que se mide la altura sobre el drenaje más cercano; se dibuja sobre el MDT sombreado.</figcaption>
+    </figure>
+    <figure class="prod-fig">
+      <img src="img/productos/11_geomorfologia.webp" alt="Unidades geomorfológicas: cauce actual, barras sedimentarias, márgenes escarpados, llanura de inundación reciente y sus taludes, terrazas baja y media" loading="lazy" width="1800" height="1011">
+      <figcaption><strong>Agrupación geomorfológica</strong> · código = clase de altura HAND (1: 0–1 m, 2: 1–2,5 m, 3: 2,5–4,5 m, 4: &gt; 4,5 m) × clase de pendiente. Ej.: 11 cauce actual, 12 barras, 21–22 llanura de inundación reciente.</figcaption>
+    </figure>
+  </div>
+
+  <div class="prod-grid two">
+    <figure class="prod-fig perfil">
+      <img src="img/productos/07_perfil_transversal_01.svg" alt="Perfil transversal del Corte 1, de 102 metros, con elevaciones entre 567,7 y 570 metros; las franjas azules marcan los tramos con agua, donde el perfil queda plano" loading="lazy" width="960" height="250">
+      <figcaption><strong>Corte 1</strong> · E 334.450, entre PC3 y PC4 · 102 m · exageración vertical 3×.</figcaption>
+    </figure>
+    <figure class="prod-fig perfil">
+      <img src="img/productos/08_perfil_transversal_02.svg" alt="Perfil transversal del Corte 2, de 89 metros, con elevaciones entre 577,9 y 580,2 metros; las franjas azules marcan los tramos con agua" loading="lazy" width="960" height="250">
+      <figcaption><strong>Corte 2</strong> · sector PC6, perpendicular al cauce · 89 m · exageración vertical 3×.</figcaption>
+    </figure>
+  </div>
+  <div class="alert"><p><b>Lo que muestran los perfiles:</b> donde la ortofoto ve agua (franjas azules, detectadas por color), el MDT queda plano o en pendiente suave. Esa es la <b>superficie del agua, no el fondo del río</b>. Es la brecha crítica de la cadena: HEC-RAS necesitará batimetría o un levantamiento del lecho en esos tramos.</p></div>
+
+  <p class="descarga note">Productos completos descargables desde Zenodo con DOI <em>(pendiente de publicar: reemplazar este enlace cuando esté activo)</em>.</p>
 </section>
 
 <!-- Clave 4 -->
